@@ -19,6 +19,11 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Close menu on route click
+  function closeMenu() {
+    setOpen(false);
+  }
+
   return (
     <>
       <header
@@ -30,6 +35,7 @@ export default function Navbar() {
         )}
       >
         <div className="container flex items-center justify-between h-16">
+          {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
             <div className="h-12 w-12 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
               <img
@@ -47,6 +53,7 @@ export default function Navbar() {
             </div>
           </Link>
 
+          {/* Desktop Menu */}
           <nav className="hidden md:flex items-center gap-2">
             <Link className="nav-link" href="/">
               Home
@@ -65,16 +72,17 @@ export default function Navbar() {
             </Link>
           </nav>
 
+          {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <button
-  onClick={() => setEnquiryOpen(true)}
-  className="btn-primary text-sm px-4 py-2"
->
-  Get Enquiry
-</button>
-
+              onClick={() => setEnquiryOpen(true)}
+              className="btn-primary text-sm px-4 py-2"
+            >
+              Get Enquiry
+            </button>
           </div>
 
+          {/* Mobile Menu Button */}
           <button
             className="md:hidden p-2 rounded-xl border border-white/10 bg-white/5"
             onClick={() => setOpen((s) => !s)}
@@ -84,31 +92,32 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* Mobile Menu */}
         {open && (
           <div className="md:hidden border-t border-white/10 bg-black/80 backdrop-blur-xl">
             <div className="container py-4 flex flex-col gap-2">
-              <Link className="nav-link" href="/" onClick={() => setOpen(false)}>
+              <Link className="nav-link" href="/" onClick={closeMenu}>
                 Home
               </Link>
-              <Link
-                className="nav-link"
-                href="/about"
-                onClick={() => setOpen(false)}
-              >
+
+              <Link className="nav-link" href="/about" onClick={closeMenu}>
                 About Us
               </Link>
-              <Link
-                className="nav-link"
-                href="/services"
-                onClick={() => setOpen(false)}
-              >
+
+              <Link className="nav-link" href="/services" onClick={closeMenu}>
                 Services
               </Link>
+
+              {/* ✅ ADDED Explore & News in Mobile */}
               <Link
                 className="nav-link"
-                href="/contact"
-                onClick={() => setOpen(false)}
+                href="/explore-news"
+                onClick={closeMenu}
               >
+                Explore & News
+              </Link>
+
+              <Link className="nav-link" href="/contact" onClick={closeMenu}>
                 Contact Us
               </Link>
 
@@ -117,7 +126,7 @@ export default function Navbar() {
                   setEnquiryOpen(true);
                   setOpen(false);
                 }}
-                className="btn-primary w-full mt-2"
+                className="btn-primary w-full mt-2 text-sm py-2"
               >
                 Get Enquiry
               </button>
