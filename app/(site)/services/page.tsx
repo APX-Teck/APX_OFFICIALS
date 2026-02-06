@@ -13,44 +13,60 @@ export default function ServicesPage() {
         <div className="grid gap-6">
           {siteData.services.map((s) => (
             <Reveal key={s.slug}>
-              <div className="card">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-semibold">{s.title}</h3>
-                    <p className="text-white/70 mt-2 max-w-2xl">
-                      {s.overview}
-                    </p>
-                  </div>
+              <div className="card overflow-hidden p-0">
+                {/* Image Banner */}
+                <div className="relative h-44 w-full">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `url(${s.image})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-black/55" />
 
-                  <div className="pill">{s.tag}</div>
+                  <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-xl font-semibold">{s.title}</p>
+                      <p className="text-white/70 text-sm mt-1">{s.tag}</p>
+                    </div>
+
+                    <div className="pill">{s.tag}</div>
+                  </div>
                 </div>
 
-                <div className="grid gap-5 mt-6 md:grid-cols-3">
-                  <div>
-                    <p className="text-sm font-semibold">Key Benefits</p>
-                    <ul className="mt-3 space-y-2 text-white/75 list-disc pl-5">
-                      {s.benefits.map((b) => (
-                        <li key={b}>{b}</li>
-                      ))}
-                    </ul>
-                  </div>
+                {/* Content */}
+                <div className="p-6">
+                  <p className="text-white/70 max-w-3xl">{s.overview}</p>
 
-                  <div>
-                    <p className="text-sm font-semibold">Process</p>
-                    <ol className="mt-3 space-y-2 text-white/75 list-decimal pl-5">
-                      {s.process.map((p) => (
-                        <li key={p}>{p}</li>
-                      ))}
-                    </ol>
-                  </div>
+                  <div className="grid gap-5 mt-6 md:grid-cols-3">
+                    <div>
+                      <p className="text-sm font-semibold">Key Benefits</p>
+                      <ul className="mt-3 space-y-2 text-white/75 list-disc pl-5">
+                        {s.benefits.map((b) => (
+                          <li key={b}>{b}</li>
+                        ))}
+                      </ul>
+                    </div>
 
-                  <div>
-                    <p className="text-sm font-semibold">Ideal For</p>
-                    <ul className="mt-3 space-y-2 text-white/75 list-disc pl-5">
-                      {s.idealFor.map((i) => (
-                        <li key={i}>{i}</li>
-                      ))}
-                    </ul>
+                    <div>
+                      <p className="text-sm font-semibold">Process</p>
+                      <ol className="mt-3 space-y-2 text-white/75 list-decimal pl-5">
+                        {s.process.map((p) => (
+                          <li key={p}>{p}</li>
+                        ))}
+                      </ol>
+                    </div>
+
+                    <div>
+                      <p className="text-sm font-semibold">Ideal For</p>
+                      <ul className="mt-3 space-y-2 text-white/75 list-disc pl-5">
+                        {s.idealFor.map((i) => (
+                          <li key={i}>{i}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>

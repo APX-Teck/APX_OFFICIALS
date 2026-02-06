@@ -13,18 +13,41 @@ export default function ContactPage() {
           <Reveal>
             <div className="card">
               <h3 className="card-title">Office Address</h3>
-              <p className="card-text">APX Teck, India (Dummy Address)</p>
+              <p className="card-text">APX Teck, Pune, Maharashtra, India. (411014)</p>
 
               <div className="mt-5 space-y-2 text-white/75">
-                <p>
-                  <span className="text-white font-semibold">Email:</span>{" "}
-                  apx@example.com
-                </p>
-                <p>
-                  <span className="text-white font-semibold">Phone:</span> +91
-                  90000 00000
-                </p>
-              </div>
+  <p>
+    <span className="text-white font-semibold">Email:</span>{" "}
+    <a
+      href="mailto:info@apxteck.com"
+      className="text-white/80 hover:text-white underline underline-offset-4 transition"
+    >
+      info@apxteck.com
+    </a>
+  </p>
+
+  <p>
+    <span className="text-white font-semibold">Phone:</span>{" "}
+    <a
+      href="tel:+919405282582"
+      className="text-white/80 hover:text-white underline underline-offset-4 transition"
+    >
+      +91 94052 82582
+    </a>
+  </p>
+
+  <p>
+    <span className="text-white font-semibold">WhatsApp:</span>{" "}
+    <a
+      href="https://wa.me/919405282582"
+      target="_blank"
+      className="text-white/80 hover:text-white underline underline-offset-4 transition"
+    >
+      Chat on WhatsApp
+    </a>
+  </p>
+</div>
+
 
               <div className="mt-6 flex flex-wrap gap-3">
                 <a className="pill" href="#">
