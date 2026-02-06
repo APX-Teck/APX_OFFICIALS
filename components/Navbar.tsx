@@ -57,15 +57,22 @@ export default function Navbar() {
             <Link className="nav-link" href="/services">
               Services
             </Link>
+            <Link className="nav-link" href="/explore-news">
+              Explore & News
+            </Link>
             <Link className="nav-link" href="/contact">
               Contact Us
             </Link>
           </nav>
 
           <div className="hidden md:flex items-center gap-3">
-            <button onClick={() => setEnquiryOpen(true)} className="btn-primary">
-              Get Enquiry
-            </button>
+            <button
+  onClick={() => setEnquiryOpen(true)}
+  className="btn-primary text-sm px-4 py-2"
+>
+  Get Enquiry
+</button>
+
           </div>
 
           <button

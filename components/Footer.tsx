@@ -39,14 +39,32 @@ export default function Footer() {
           </div>
         </div>
 
-        <div>
-          <p className="font-semibold">Contact</p>
-          <div className="mt-3 grid gap-2 text-white/70">
-            <p>Email: apx@example.com</p>
-            <p>Phone: +91 90000 00000</p>
-            <p>Address: India (Dummy)</p>
-          </div>
-        </div>
+        <div className="mt-3 grid gap-2 text-white/70">
+  <a
+    href="mailto:info@apxteck.com"
+    className="hover:text-white transition"
+  >
+    Email: info@apxteck.com
+  </a>
+
+  <a
+    href="tel:+919405282582"
+    className="hover:text-white transition"
+  >
+    Phone: +91 94052 82582
+  </a>
+
+  <a
+    href="https://wa.me/919405282582"
+    target="_blank"
+    className="hover:text-white transition"
+  >
+    WhatsApp: +91 94052 82582
+  </a>
+
+  <p>Address:Pune, Maharashtra, India. (411041)</p>
+</div>
+
       </div>
 
       <div className="border-t border-white/10">
