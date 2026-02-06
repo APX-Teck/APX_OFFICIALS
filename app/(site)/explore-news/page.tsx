@@ -39,13 +39,14 @@ export default function ExploreNewsPage() {
                   <p className="text-lg font-semibold leading-snug">
                     {p.title}
                   </p>
+
                   <p className="text-white/60 text-sm mt-2">{p.date}</p>
+
                   <p className="text-white/70 mt-3 leading-relaxed">
                     {p.excerpt}
                   </p>
-                  <p className="text-white mt-4 font-semibold">
-                    Read More →
-                  </p>
+
+                  <p className="text-white mt-4 font-semibold">Read More →</p>
                 </div>
               </Link>
             </Reveal>
