@@ -62,7 +62,7 @@ export default function Footer() {
     WhatsApp: +91 94052 82582
   </a>
 
-  <p>Address: Pune, Maharashtra, India. (411041)</p>
+  <p>Address: Narhe, Pune, Maharashtra, India. (411041)</p>
 </div>
 
       </div>
