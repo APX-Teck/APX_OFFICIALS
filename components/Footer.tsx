@@ -70,7 +70,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="container py-5 text-sm text-white/60 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} APX Teck. All rights reserved.</p>
-          <p>Designed with a premium black theme.</p>
+          <p>Designed with a APX Teck</p>
         </div>
       </div>
     </footer>
