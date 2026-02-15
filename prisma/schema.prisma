@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  SALES
+  ADS_MANAGER
+  CLIENT
+  USER
+}
+
+enum RequestStatus {
+  NEW
+  IN_REVIEW
+  IN_PROGRESS
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  BOOLEAN
+  SELECT
+  FILE
+}
+
+enum BlogStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  fullName     String   @map("full_name")
+  phone        String?
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true) @map("is_active")
+
+  serviceRequests  ServiceRequest[] @relation("UserRequests")
+  assignedRequests ServiceRequest[] @relation("AssignedRequests")
+  blogPosts        BlogPost[]
+  blogLikes        BlogLike[]
+  blogComments     BlogComment[]
+  blogShares       BlogShare[]
+  notifications    Notification[]
+  payments         Payment[]
+  permissions      UserPermission[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  key         String           @unique
+  description String?
+  users       UserPermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  userId       String     @map("user_id")
+  permissionId String     @map("permission_id")
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permissions")
+}
+
+model Service {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  slug        String         @unique
+  description String?
+  isActive    Boolean        @default(true) @map("is_active")
+  fields      ServiceField[]
+  requests    ServiceRequest[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
+model ServiceField {
+  id         String    @id @default(cuid())
+  serviceId  String    @map("service_id")
+  label      String
+  key        String
+  type       FieldType
+  isRequired Boolean   @default(false) @map("is_required")
+  options    String?
+  service    Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([serviceId, key])
+  @@map("service_fields")
+}
+
+model ServiceRequest {
+  id           String               @id @default(cuid())
+  userId       String               @map("user_id")
+  serviceId    String               @map("service_id")
+  assignedToId String?              @map("assigned_to")
+  status       RequestStatus        @default(NEW)
+  priority     Priority             @default(MEDIUM)
+  title        String?
+  message      String?              @db.Text
+  
+  user         User                 @relation("UserRequests", fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo   User?                @relation("AssignedRequests", fields: [assignedToId], references: [id])
+  service      Service              @relation(fields: [serviceId], references: [id])
+  requestData  ServiceRequestData[]
+  files        FileUpload[]
+  payments     Payment[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([status])
+  @@map("service_requests")
+}
+
+model ServiceRequestData {
+  id        String         @id @default(cuid())
+  requestId String         @map("request_id")
+  fieldKey  String         @map("field_key")
+  value     String         @db.Text
+  request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@map("service_request_data")
+}
+
+model FileUpload {
+  id        String         @id @default(cuid())
+  requestId String         @map("request_id")
+  fileName  String         @map("file_name")
+  fileUrl   String         @map("file_url")
+  fileType  String?        @map("file_type")
+  request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("file_uploads")
+}
+
+model BlogPost {
+  id        String        @id @default(cuid())
+  title     String
+  slug      String        @unique
+  content   String        @db.Text
+  thumbnail String?
+  status    BlogStatus    @default(DRAFT)
+  views     Int           @default(0)
+  authorId  String        @map("author_id")
+  author    User          @relation(fields: [authorId], references: [id])
+  likes     BlogLike[]
+  comments  BlogComment[]
+  shares    BlogShare[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([slug])
+  @@map("blog_posts")
+}
+
+model BlogLike {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  userId    String   @map("user_id")
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([postId, userId])
+  @@map("blog_likes")
+}
+
+model BlogComment {
+  id         String   @id @default(cuid())
+  comment    String   @db.Text
+  postId     String   @map("post_id")
+  userId     String   @map("user_id")
+  isApproved Boolean  @default(true) @map("is_approved")
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("blog_comments")
+}
+
+model BlogShare {
+  id        String   @id @default(cuid())
+  postId    String   @map("post_id")
+  userId    String?  @map("user_id")
+  platform  String?
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("blog_shares")
+}
+
+model Ad {
+  id         String   @id @default(cuid())
+  placement  String
+  adType     String   @map("ad_type")
+  adCode     String?  @map("ad_code") @db.Text
+  imageUrl   String?  @map("image_url")
+  targetUrl  String?  @map("target_url")
+  clientName String?  @map("client_name")
+  isActive   Boolean  @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("ads")
+}
+
+model Enquiry {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String   @db.Text
+  status    String   @default("NEW")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("enquiries")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  title     String
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("notifications")
+}
+
+model Payment {
+  id               String         @id @default(cuid())
+  userId           String         @map("user_id")
+  serviceRequestId String         @map("service_request_id")
+  amount           Decimal        @db.Decimal(10, 2)
+  currency         String         @default("USD")
+  status           PaymentStatus  @default(PENDING)
+  transactionId    String?        @map("transaction_id")
+  paymentMethod    String?        @map("payment_method")
+  user             User           @relation(fields: [userId], references: [id])
+  serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("payments")
+}
