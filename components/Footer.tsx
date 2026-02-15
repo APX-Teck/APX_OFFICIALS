@@ -62,7 +62,7 @@ export default function Footer() {
     WhatsApp: +91 94052 82582
   </a>
 
-  <p>Address:Pune, Maharashtra, India. (411041)</p>
+  <p>Address: Narhe, Pune, Maharashtra, India. (411041)</p>
 </div>
 
       </div>
@@ -70,7 +70,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="container py-5 text-sm text-white/60 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} APX Teck. All rights reserved.</p>
-          <p>Designed with a premium black theme.</p>
+          <p>Designed with a APX Teck</p>
         </div>
       </div>
     </footer>

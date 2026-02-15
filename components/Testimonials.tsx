@@ -28,9 +28,17 @@ export default function Testimonials() {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {data.map((t) => (
         <Reveal key={t.name}>
-          <div className="card">
-            <p className="text-white/80">“{t.text}”</p>
-            <div className="mt-5">
+          <div className="card h-full flex flex-col">
+            {/* Text */}
+            <p className="text-white/80 leading-relaxed line-clamp-5">
+              “{t.text}”
+            </p>
+
+            {/* Spacer pushes name to bottom */}
+            <div className="flex-1" />
+
+            {/* Name */}
+            <div className="mt-6">
               <p className="font-semibold">{t.name}</p>
               <p className="text-sm text-white/60">{t.role}</p>
             </div>

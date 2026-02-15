@@ -23,7 +23,7 @@ export default function HomePage() {
       <Section
         eyebrow="Trusted"
         title="Brands that trust APX"
-        description="(Dummy logos for now — you can replace them anytime.)"
+        description=""
       >
         <ClientLogos />
       </Section>
