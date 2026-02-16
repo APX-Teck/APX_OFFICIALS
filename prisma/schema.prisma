@@ -56,13 +56,13 @@ enum PaymentStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           Int      @id @default(autoincrement())
   email        String   @unique
-  passwordHash String   @map("password_hash")
-  fullName     String   @map("full_name")
+  passwordHash String   
+  fullName     String   
   phone        String?
   role         UserRole @default(USER)
-  isActive     Boolean  @default(true) @map("is_active")
+  isActive     Boolean  @default(true) 
 
   serviceRequests  ServiceRequest[] @relation("UserRequests")
   assignedRequests ServiceRequest[] @relation("AssignedRequests")
@@ -74,14 +74,14 @@ model User {
   payments         Payment[]
   permissions      UserPermission[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
 
   @@map("users")
 }
 
 model Permission {
-  id          String           @id @default(cuid())
+  id          Int              @id @default(autoincrement())
   key         String           @unique
   description String?
   users       UserPermission[]
@@ -90,51 +90,49 @@ model Permission {
 }
 
 model UserPermission {
-  userId       String     @map("user_id")
-  permissionId String     @map("permission_id")
+  userId       Int        
+  permissionId Int        
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
   @@id([userId, permissionId])
-  @@map("user_permissions")
 }
 
 model Service {
-  id          String           @id @default(cuid())
+  id          Int              @id @default(autoincrement())
   name        String           @unique
   slug        String           @unique
   description String?
-  isActive    Boolean          @default(true) @map("is_active")
+  isActive    Boolean          @default(true) 
   fields      ServiceField[]
   requests    ServiceRequest[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
 
   @@map("services")
 }
 
 model ServiceField {
-  id         String    @id @default(cuid())
-  serviceId  String    @map("service_id")
+  id         Int       @id @default(autoincrement())
+  serviceId  Int       
   label      String
   key        String
   type       FieldType
-  isRequired Boolean   @default(false) @map("is_required")
+  isRequired Boolean   @default(false) 
   options    String?
   service    Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) 
 
   @@unique([serviceId, key])
-  @@map("service_fields")
 }
 
 model ServiceRequest {
-  id           String        @id @default(cuid())
-  userId       String        @map("user_id")
-  serviceId    String        @map("service_id")
-  assignedToId String?       @map("assigned_to")
+  id           Int           @id @default(autoincrement())
+  userId       Int           
+  serviceId    Int           
+  assignedToId Int?          
   status       RequestStatus @default(NEW)
   priority     Priority      @default(MEDIUM)
   title        String?
@@ -147,76 +145,71 @@ model ServiceRequest {
   files       FileUpload[]
   payments    Payment[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
 
   @@index([userId])
   @@index([status])
-  @@map("service_requests")
 }
 
 model ServiceRequestData {
-  id        String         @id @default(cuid())
-  requestId String         @map("request_id")
-  fieldKey  String         @map("field_key")
+  id        Int            @id @default(autoincrement())
+  requestId Int            
+  fieldKey  String         
   value     String         @db.Text
   request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  @@map("service_request_data")
 }
 
 model FileUpload {
-  id        String         @id @default(cuid())
-  requestId String         @map("request_id")
-  fileName  String         @map("file_name")
-  fileUrl   String         @map("file_url")
-  fileType  String?        @map("file_type")
+  id        Int            @id @default(autoincrement())
+  requestId Int            
+  fileName  String         
+  fileUrl   String         
+  fileType  String?        
   request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) 
 
-  @@map("file_uploads")
 }
 
 model BlogPost {
-  id        String        @id @default(cuid())
+  id        Int           @id @default(autoincrement())
   title     String
   slug      String        @unique
   content   String        @db.Text
   thumbnail String?
   status    BlogStatus    @default(DRAFT)
   views     Int           @default(0)
-  authorId  String        @map("author_id")
+  authorId  Int           
   author    User          @relation(fields: [authorId], references: [id])
   likes     BlogLike[]
   comments  BlogComment[]
   shares    BlogShare[]
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) 
+  updatedAt DateTime @updatedAt 
 
   @@index([slug])
-  @@map("blog_posts")
 }
 
 model BlogLike {
-  id     String   @id @default(cuid())
-  postId String   @map("post_id")
-  userId String   @map("user_id")
+  id     Int      @id @default(autoincrement())
+  postId Int      
+  userId Int      
   post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) 
 
   @@unique([postId, userId])
-  @@map("blog_likes")
 }
 
 model BlogComment {
-  id         String   @id @default(cuid())
+  id         Int      @id @default(autoincrement())
   comment    String   @db.Text
-  postId     String   @map("post_id")
-  userId     String   @map("user_id")
+  postId     Int      @map("post_id")
+  userId     Int      @map("user_id")
   isApproved Boolean  @default(true) @map("is_approved")
   post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -227,9 +220,9 @@ model BlogComment {
 }
 
 model BlogShare {
-  id       String   @id @default(cuid())
-  postId   String   @map("post_id")
-  userId   String?  @map("user_id")
+  id       Int      @id @default(autoincrement())
+  postId   Int      @map("post_id")
+  userId   Int?     @map("user_id")
   platform String?
   post     BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user     User?    @relation(fields: [userId], references: [id])
@@ -240,7 +233,7 @@ model BlogShare {
 }
 
 model Ad {
-  id         String  @id @default(cuid())
+  id         Int     @id @default(autoincrement())
   placement  String
   adType     String  @map("ad_type")
   adCode     String? @map("ad_code") @db.Text
@@ -256,7 +249,7 @@ model Ad {
 }
 
 model Enquiry {
-  id      String  @id @default(cuid())
+  id      Int     @id @default(autoincrement())
   name    String
   email   String
   phone   String?
@@ -269,8 +262,8 @@ model Enquiry {
 }
 
 model Notification {
-  id      String  @id @default(cuid())
-  userId  String  @map("user_id")
+  id      Int     @id @default(autoincrement())
+  userId  Int     @map("user_id")
   title   String
   message String
   isRead  Boolean @default(false) @map("is_read")
@@ -282,9 +275,9 @@ model Notification {
 }
 
 model Payment {
-  id               String         @id @default(cuid())
-  userId           String         @map("user_id")
-  serviceRequestId String         @map("service_request_id")
+  id               Int            @id @default(autoincrement())
+  userId           Int            @map("user_id")
+  serviceRequestId Int            @map("service_request_id")
   amount           Decimal        @db.Decimal(10, 2)
   currency         String         @default("USD")
   status           PaymentStatus  @default(PENDING)
