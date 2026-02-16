@@ -58,11 +58,11 @@ enum PaymentStatus {
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
-  passwordHash String   
-  fullName     String   
+  passwordHash String
+  fullName     String
   phone        String?
   role         UserRole @default(USER)
-  isActive     Boolean  @default(true) 
+  isActive     Boolean  @default(true)
 
   serviceRequests  ServiceRequest[] @relation("UserRequests")
   assignedRequests ServiceRequest[] @relation("AssignedRequests")
@@ -74,8 +74,8 @@ model User {
   payments         Payment[]
   permissions      UserPermission[]
 
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }
@@ -90,8 +90,8 @@ model Permission {
 }
 
 model UserPermission {
-  userId       Int        
-  permissionId Int        
+  userId       Int
+  permissionId Int
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
 
@@ -103,36 +103,36 @@ model Service {
   name        String           @unique
   slug        String           @unique
   description String?
-  isActive    Boolean          @default(true) 
+  isActive    Boolean          @default(true)
   fields      ServiceField[]
   requests    ServiceRequest[]
 
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("services")
 }
 
 model ServiceField {
   id         Int       @id @default(autoincrement())
-  serviceId  Int       
+  serviceId  Int
   label      String
   key        String
   type       FieldType
-  isRequired Boolean   @default(false) 
+  isRequired Boolean   @default(false)
   options    String?
   service    Service   @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) 
+  createdAt DateTime @default(now())
 
   @@unique([serviceId, key])
 }
 
 model ServiceRequest {
   id           Int           @id @default(autoincrement())
-  userId       Int           
-  serviceId    Int           
-  assignedToId Int?          
+  userId       Int
+  serviceId    Int
+  assignedToId Int?
   status       RequestStatus @default(NEW)
   priority     Priority      @default(MEDIUM)
   title        String?
@@ -145,8 +145,8 @@ model ServiceRequest {
   files       FileUpload[]
   payments    Payment[]
 
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -154,23 +154,21 @@ model ServiceRequest {
 
 model ServiceRequestData {
   id        Int            @id @default(autoincrement())
-  requestId Int            
-  fieldKey  String         
+  requestId Int
+  fieldKey  String
   value     String         @db.Text
   request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
-
 }
 
 model FileUpload {
   id        Int            @id @default(autoincrement())
-  requestId Int            
-  fileName  String         
-  fileUrl   String         
-  fileType  String?        
+  requestId Int
+  fileName  String
+  fileUrl   String
+  fileType  String?
   request   ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) 
-
+  createdAt DateTime @default(now())
 }
 
 model BlogPost {
@@ -181,26 +179,26 @@ model BlogPost {
   thumbnail String?
   status    BlogStatus    @default(DRAFT)
   views     Int           @default(0)
-  authorId  Int           
+  authorId  Int
   author    User          @relation(fields: [authorId], references: [id])
   likes     BlogLike[]
   comments  BlogComment[]
   shares    BlogShare[]
 
-  createdAt DateTime @default(now()) 
-  updatedAt DateTime @updatedAt 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([slug])
 }
 
 model BlogLike {
   id     Int      @id @default(autoincrement())
-  postId Int      
-  userId Int      
+  postId Int
+  userId Int
   post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) 
+  createdAt DateTime @default(now())
 
   @@unique([postId, userId])
 }
@@ -208,44 +206,38 @@ model BlogLike {
 model BlogComment {
   id         Int      @id @default(autoincrement())
   comment    String   @db.Text
-  postId     Int      @map("post_id")
-  userId     Int      @map("user_id")
-  isApproved Boolean  @default(true) @map("is_approved")
+  postId     Int
+  userId     Int
+  isApproved Boolean  @default(true)
   post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("blog_comments")
+  createdAt DateTime @default(now())
 }
 
 model BlogShare {
   id       Int      @id @default(autoincrement())
-  postId   Int      @map("post_id")
-  userId   Int?     @map("user_id")
+  postId   Int
+  userId   Int?
   platform String?
   post     BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   user     User?    @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("blog_shares")
+  createdAt DateTime @default(now())
 }
 
 model Ad {
   id         Int     @id @default(autoincrement())
   placement  String
-  adType     String  @map("ad_type")
-  adCode     String? @map("ad_code") @db.Text
-  imageUrl   String? @map("image_url")
-  targetUrl  String? @map("target_url")
-  clientName String? @map("client_name")
-  isActive   Boolean @default(true) @map("is_active")
+  adType     String
+  adCode     String? @db.Text
+  imageUrl   String?
+  targetUrl  String?
+  clientName String?
+  isActive   Boolean @default(true)
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("ads")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Enquiry {
@@ -256,37 +248,31 @@ model Enquiry {
   message String  @db.Text
   status  String  @default("NEW")
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("enquiries")
+  createdAt DateTime @default(now())
 }
 
 model Notification {
   id      Int     @id @default(autoincrement())
-  userId  Int     @map("user_id")
+  userId  Int
   title   String
   message String
-  isRead  Boolean @default(false) @map("is_read")
+  isRead  Boolean @default(false)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("notifications")
+  createdAt DateTime @default(now())
 }
 
 model Payment {
   id               Int            @id @default(autoincrement())
-  userId           Int            @map("user_id")
-  serviceRequestId Int            @map("service_request_id")
+  userId           Int
+  serviceRequestId Int
   amount           Decimal        @db.Decimal(10, 2)
   currency         String         @default("USD")
   status           PaymentStatus  @default(PENDING)
-  transactionId    String?        @map("transaction_id")
-  paymentMethod    String?        @map("payment_method")
+  transactionId    String?
+  paymentMethod    String?
   user             User           @relation(fields: [userId], references: [id])
   serviceRequest   ServiceRequest @relation(fields: [serviceRequestId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at")
-
-  @@map("payments")
+  createdAt DateTime @default(now())
 }
