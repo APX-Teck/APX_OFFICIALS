@@ -14,7 +14,7 @@ export async function PUT(req: NextRequest,
     }
 
     const resolvedParams = await params;
-    const serviceId = parseInt(resolvedParams.serviceId, 10);
+    const serviceId = parseInt(resolvedParams.serviceId);
 
     const body = await req.json();
     const parsedData = serviceValidation.safeParse(body);

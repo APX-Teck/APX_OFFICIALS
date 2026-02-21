@@ -35,9 +35,7 @@ export const serviceRequestValidation = z.object({
 
 
 export const serviceRequestDataValidation = z.object({
-  requestId: z.number().optional(),
-  fields: z.array(z.object({
-    key: z.string().optional(),
-    value: z.string().optional(),
-  })).optional(),
+  requestId: z.number().min(1, 'Enter Positive Number').optional(),
+  fields: z.string().min(1, 'Enter Field Name').optional(),
+  value: z.string().min(1, 'Enter Field Value').optional(),
 });

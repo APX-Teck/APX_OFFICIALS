@@ -103,7 +103,11 @@ export async function GET(
   { params }: { params: Promise<{ requestId: string }> },
 ) {
   try {
-    const { error, user } = await verifyToken(["SUPER_ADMIN", "ADMIN","CLIENT"])(req);
+    const { error, user } = await verifyToken([
+      "SUPER_ADMIN",
+      "ADMIN",
+      "CLIENT",
+    ])(req);
     if (error) {
       return error;
     }
