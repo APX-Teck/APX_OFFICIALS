@@ -35,6 +35,38 @@ export async function PUT(
 
     const { assignedToId, status, priority, title, message } = parsedData.data;
 
+    const servicetimeline = await prisma.serviceRequest.findUnique({
+      where: {
+        id: requestId,
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    if (!servicetimeline) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Service request not found",
+        },
+        { status: 404 },
+      );
+    }
+
+    const oneHourLater =
+      new Date(servicetimeline.createdAt).getTime() + 60 * 60 * 1000;
+
+    if (Date.now() > oneHourLater) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `You can't update service request after one hour, you have update at ${servicetimeline.createdAt.toLocaleString()}`,
+        },
+        { status: 404 },
+      );
+    }
+
     const serviceRequest = await prisma.serviceRequest.update({
       where: {
         id: requestId,
@@ -138,4 +170,3 @@ export async function DELETE(
     );
   }
 }
-

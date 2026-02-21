@@ -32,3 +32,12 @@ export const serviceRequestValidation = z.object({
   message: z.string().optional(),
   serviceId: z.number().optional(),
 });
+
+
+export const serviceRequestDataValidation = z.object({
+  requestId: z.number().optional(),
+  fields: z.array(z.object({
+    key: z.string().optional(),
+    value: z.string().optional(),
+  })).optional(),
+});
