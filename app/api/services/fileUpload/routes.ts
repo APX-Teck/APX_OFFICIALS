@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const folder = `${process.env.IMAGEKIT_URL_ENDPOINT}/APX/client-refrence`;
+    const folder = `APX/client-refrence`;
 
     const uploadedFile = await uploadService.uploadDocument(
       buffer,
