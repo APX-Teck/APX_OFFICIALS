@@ -55,6 +55,12 @@ export async function PUT(
       data: {
         isActive: newStatus,
       },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        isActive: true,
+      },
     });
 
     return NextResponse.json({

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
+import { userValidation } from "@/lib/validation/user.validation";
 
 export async function GET(
   request: NextRequest,
@@ -15,10 +16,25 @@ export async function GET(
         { status: 400 },
       );
     }
+    const id = parseInt(userId);
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid user ID" },
+        { status: 400 },
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: {
-        id: parseInt(userId),
+        id,
+      },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        fullName: true,
+        role: true,
+        isActive: true,
       },
     });
 
@@ -72,8 +88,15 @@ export async function PUT(
       );
     }
 
-    const body = await request.json().catch(() => ({}));
-    const {email,phone, fullName, role, isActive } = body;
+    const parseData = userValidation.parse(await request.json());
+
+    if (!parseData) {
+      return NextResponse.json(
+        { success: false, error: "Invalid user data" },
+        { status: 400 },
+      );
+    }
+    const { email, phone, fullName, role, isActive } = parseData;
 
     if (!role || isActive === undefined) {
       return NextResponse.json(

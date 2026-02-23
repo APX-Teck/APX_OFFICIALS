@@ -93,20 +93,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
 
-    if (error.code === "P2003") {
-      return NextResponse.json(
-        { success: false, error: "Invalid foreign key reference" },
-        { status: 400 }
-      );
-    }
-
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { success: false, error: "Permission already assigned" },
-        { status: 400 }
-      );
-    }
-
     console.error("Error assigning permission:", error);
 
     return NextResponse.json(

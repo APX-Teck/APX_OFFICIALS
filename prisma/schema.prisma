@@ -175,7 +175,7 @@ model FileUpload {
 model BlogPost {
   id        Int           @id @default(autoincrement())
   title     String
-  slug      String        @unique
+  slug      String?        @unique
   content   String        @db.Text
   thumbnail String?
   fieldId   String?

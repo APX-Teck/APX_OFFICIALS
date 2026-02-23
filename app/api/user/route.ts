@@ -5,9 +5,9 @@ import { verifyToken } from "@/lib/middleware/roleVerification";
 //get all users
 export async function GET(request: NextRequest) {
   try {
-    const {error,user} = await verifyToken(["SUPER_ADMIN"])(request);
-    if(error){
-        return error;
+    const { error, user } = await verifyToken(["SUPER_ADMIN"])(request);
+    if (error) {
+      return error;
     }
     const { searchParams } = new URL(request.url);
 
@@ -26,6 +26,15 @@ export async function GET(request: NextRequest) {
 
     const users = await prisma.user.findMany({
       where: filter,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       orderBy: {
         createdAt: "desc",
       },
