@@ -5,10 +5,10 @@ import uploadService from "@/lib/service/imagekit/upload";
 //get file upload by id
 export async function GET(
   req: NextRequest,
-  { params }: { params: { uploadId: string } },
+  { params }: { params: Promise<{ uploadId: string }> },
 ) {
   try {
-    const uploadId = Number(params.uploadId);
+    const { uploadId } = await params;
     if (!uploadId) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -17,7 +17,7 @@ export async function GET(
     }
     const fileUpload = await prisma.fileUpload.findUnique({
       where: {
-        id: uploadId,
+        id: Number(uploadId),
       },
     });
     
@@ -43,10 +43,10 @@ export async function GET(
 //delete file
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { uploadId: string } },
+  { params }: { params: Promise<{ uploadId: string }> },
 ) {
   try {
-    const uploadId = Number(params.uploadId);
+    const { uploadId } = await params;
     if (!uploadId) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -55,7 +55,7 @@ export async function DELETE(
     }
     const existingFileUpload = await prisma.fileUpload.findUnique({
       where: {
-        id: uploadId,
+        id: Number(uploadId),
       },
     });
     if (!existingFileUpload) {
@@ -68,7 +68,7 @@ export async function DELETE(
     //need handle error handling
     const fileUpload = await prisma.fileUpload.delete({
       where: {
-        id: uploadId,
+        id: Number(uploadId),
       },
     });
     return NextResponse.json({
@@ -87,10 +87,10 @@ export async function DELETE(
 //update file
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { uploadId: string } },
+  { params }: { params: Promise<{ uploadId: string }> },
 ) {
   try {
-    const uploadId = Number(params.uploadId);
+    const { uploadId } = await params;
     if (!uploadId) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -109,7 +109,7 @@ export async function PUT(
 
     const existingFileUpload = await prisma.fileUpload.findUnique({
       where: {
-        id: uploadId,
+        id: Number(uploadId),
       },
     });
 
@@ -136,7 +136,7 @@ export async function PUT(
 
     const fileUpload = await prisma.fileUpload.update({
       where: {
-        id: uploadId,
+        id: Number(uploadId),
       },
       data: {
         docFileId: uploadedFile.fileId,

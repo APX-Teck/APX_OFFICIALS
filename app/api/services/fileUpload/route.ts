@@ -56,8 +56,6 @@ export async function POST(req: NextRequest) {
       ["service-request", requestId.toString()],
     );
 
-    console.log("ImageKit uploadedFile", uploadedFile);
-
     const result = await prisma.fileUpload.create({
       data: {
         requestId,

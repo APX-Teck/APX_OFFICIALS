@@ -178,6 +178,7 @@ model BlogPost {
   slug      String        @unique
   content   String        @db.Text
   thumbnail String?
+  fieldId   String?
   status    BlogStatus    @default(DRAFT)
   views     Int           @default(0)
   authorId  Int
@@ -195,9 +196,9 @@ model BlogPost {
 model BlogLike {
   id     Int      @id @default(autoincrement())
   postId Int
-  userId Int
+  userId Int?
   post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
