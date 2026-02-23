@@ -2,42 +2,45 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
 
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ userId: string }> },
+) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { userId } = await params;
 
-    const role = searchParams.get("role");
-    const isActiveParam = searchParams.get("isActive");
-
-    const filter: any = {};
-
-    if (role) {
-      filter.role = role;
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 },
+      );
     }
 
-    if (isActiveParam !== null) {
-      filter.isActive = isActiveParam === "true";
-    }
-
-    const users = await prisma.user.findMany({
-      where: filter,
-      orderBy: {
-        createdAt: "desc",
+    const user = await prisma.user.findUnique({
+      where: {
+        id: parseInt(userId),
       },
     });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "User not found" },
+        { status: 404 },
+      );
+    }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Users fetched successfully",
-        data: users,
+        message: "User fetched successfully",
+        data: user,
       },
       { status: 200 },
     );
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching user:", error);
     return NextResponse.json(
-      { success: false, message: "Failed to fetch users" },
+      { success: false, message: "Failed to fetch user" },
       { status: 500 },
     );
   }
@@ -49,7 +52,7 @@ export async function PUT(
   { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
-    const { error, user } = await verifyToken(["SUPER_ADMIN"])(request);
+    const { error, user } = verifyToken(["SUPER_ADMIN"])(request);
     if (error) {
       return error;
     }
@@ -60,37 +63,56 @@ export async function PUT(
         { status: 400 },
       );
     }
-    const { role, isActive } = await request.json();
-    if (!role || !isActive) {
+
+    const id = parseInt(userId);
+    if (isNaN(id)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid user ID" },
+        { status: 400 },
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const {email,phone, fullName, role, isActive } = body;
+
+    if (!role || isActive === undefined) {
       return NextResponse.json(
         { success: false, error: "User role and isActive are required" },
         { status: 400 },
       );
     }
-    const users = await prisma.user.update({
-      where: {
-        id: parseInt(userId),
-      },
-      data: {
-        role,
-        isActive,
-      },
+
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
     });
-    if (!users) {
+
+    if (!existingUser) {
       return NextResponse.json(
         { success: false, error: "User not found" },
         { status: 404 },
       );
     }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        email,
+        phone,
+        fullName,
+        role,
+        isActive: Boolean(isActive),
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: "User updated successfully",
-      data: users,
+      data: updatedUser,
     });
-  } catch (error) {
-    console.error("Error updating users:", error);
+  } catch (err: any) {
+    console.error("Error updating user:", err);
     return NextResponse.json(
-      { success: false, error: "Failed to update users" },
+      { success: false, error: "Failed to update user" },
       { status: 500 },
     );
   }

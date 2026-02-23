@@ -1,8 +1,13 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
+import { verifyToken } from "@/lib/middleware/roleVerification";
 
-export async function GET(request: Request,{params}: { params: Promise<{ permissionId: string }> }) {
+export async function GET(request: NextRequest,{params}: { params: Promise<{ permissionId: string }> }) {
     try {
+        const {error,user} = await verifyToken(["SUPER_ADMIN"])(request);
+        if(error){
+            return error;
+        }
         const {permissionId} = await params;
         if(!permissionId){
             return NextResponse.json({ success: false, error: "Permission ID is required" }, { status: 400 });
@@ -26,8 +31,12 @@ export async function GET(request: Request,{params}: { params: Promise<{ permiss
 }
 
 //update permission
-export async function PUT(request: Request,{params}: { params: Promise<{ permissionId: string }> }) {
+export async function PUT(request: NextRequest,{params}: { params: Promise<{ permissionId: string }> }) {
     try {
+        const {error,user} = await verifyToken(["SUPER_ADMIN"])(request);
+        if(error){
+            return error;
+        }
         const {permissionId} = await params;
         if(!permissionId){
             return NextResponse.json({ success: false, error: "Permission ID is required" }, { status: 400 });
@@ -59,8 +68,12 @@ export async function PUT(request: Request,{params}: { params: Promise<{ permiss
 }
 
 //delete permission
-export async function DELETE(request: Request,{params}: { params: Promise<{ permissionId: string }> }) {
+export async function DELETE(request: NextRequest,{params}: { params: Promise<{ permissionId: string }> }) {
     try {
+        const {error,user} = await verifyToken(["SUPER_ADMIN"])(request);
+        if(error){
+            return error;
+        }
         const {permissionId} = await params;
         if(!permissionId){
             return NextResponse.json({ success: false, error: "Permission ID is required" }, { status: 400 });
