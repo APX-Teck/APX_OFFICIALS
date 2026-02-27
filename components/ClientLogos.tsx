@@ -32,7 +32,7 @@ export default function ClientLogos() {
               className="h-10 w-auto opacity-90 mx-auto object-contain"
             />
 
-            <p className="mt-3 text-sm font-semibold text-white/70">
+            <p className="mt-3 text-sm font-semibold text-black/70 dark:text-white/70">
               {c.name}
             </p>
           </a>

@@ -93,7 +93,11 @@ export default function EnquiryForm({ onSuccess }: { onSuccess?: () => void }) {
         {loading ? "Submitting..." : "Submit Enquiry"}
       </button>
 
-      {done && <p className="text-sm text-white/70 text-center mt-1">{done}</p>}
+      {done && (
+        <p className="text-sm text-black/70 dark:text-white/70 text-center mt-1">
+          {done}
+        </p>
+      )}
     </form>
   );
 }

@@ -30,7 +30,7 @@ export default function Testimonials() {
         <Reveal key={t.name}>
           <div className="card h-full flex flex-col">
             {/* Text */}
-            <p className="text-white/80 leading-relaxed line-clamp-5">
+            <p className="text-black/80 dark:text-white/80 leading-relaxed line-clamp-5">
               “{t.text}”
             </p>
 
@@ -40,7 +40,9 @@ export default function Testimonials() {
             {/* Name */}
             <div className="mt-6">
               <p className="font-semibold">{t.name}</p>
-              <p className="text-sm text-white/60">{t.role}</p>
+              <p className="text-sm text-black/60 dark:text-white/60">
+                {t.role}
+              </p>
             </div>
           </div>
         </Reveal>

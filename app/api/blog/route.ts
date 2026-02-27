@@ -13,7 +13,11 @@ export async function POST(req: NextRequest) {
     }
     if (!user || !user.id) {
       return NextResponse.json(
-        { error: "Unable to identify authenticated user" },
+        {
+          success: false,
+          message: "Unable to identify authenticated user",
+          error: "Unauthorized",
+        },
         { status: 401 },
       );
     }
@@ -23,7 +27,11 @@ export async function POST(req: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { error: "Thumbnail image file is required" },
+        {
+          success: false,
+          message: "Thumbnail image file is required",
+          error: "Missing file",
+        },
         { status: 400 },
       );
     }
@@ -39,7 +47,14 @@ export async function POST(req: NextRequest) {
     const validation = blogValidation.safeParse(objToValidate);
 
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Failed",
+          error: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
     }
 
     const { title, slug, content, status, authorId } = validation.data;
@@ -60,7 +75,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: dbError.message || "Failed to create blog post in database",
+          message: "Database error",
+          error: dbError,
         },
         { status: 500 },
       );
@@ -87,7 +103,11 @@ export async function POST(req: NextRequest) {
         .catch(console.error);
 
       return NextResponse.json(
-        { success: false, error: "Failed to upload thumbnail to ImageKit" },
+        {
+          success: false,
+          message: "Failed to upload thumbnail to ImageKit",
+          error: uploadError,
+        },
         { status: 500 },
       );
     }
@@ -105,7 +125,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Failed to update blog post with thumbnail URL",
+          message: "Failed to update blog post with thumbnail URL",
+          error: updateError,
         },
         { status: 500 },
       );
@@ -118,9 +139,13 @@ export async function POST(req: NextRequest) {
     });
   } catch (error: any) {
     console.error("Error creating blog:", error);
-    return NextResponse.json({
-      success: false,
-      error: error.message || "Failed to create blog",
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+        error: error,
+      },
+      { status: 500 },
+    );
   }
 }

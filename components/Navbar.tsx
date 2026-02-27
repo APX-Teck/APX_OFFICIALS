@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
 import { siteData } from "@/lib/siteData";
 import EnquiryModal from "@/components/EnquiryModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
@@ -30,14 +31,14 @@ export default function Navbar() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 transition-all",
           scrolled
-            ? "bg-black/70 backdrop-blur-xl border-b border-white/10"
-            : "bg-transparent"
+            ? "bg-white/70 dark:bg-black/70 backdrop-blur-xl border-b border-black/10 dark:border-white/10"
+            : "bg-transparent",
         )}
       >
         <div className="container flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-2xl overflow-hidden border border-white/10 bg-white/5 flex items-center justify-center">
+            <div className="h-12 w-12 rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 flex items-center justify-center">
               <img
                 src="/apx-logo.png"
                 alt="APX Logo"
@@ -46,8 +47,10 @@ export default function Navbar() {
             </div>
 
             <div>
-              <p className="font-semibold leading-none">{siteData.brand.name}</p>
-              <p className="text-xs text-white/60 leading-none mt-1">
+              <p className="font-semibold leading-none">
+                {siteData.brand.name}
+              </p>
+              <p className="text-xs text-black/60 dark:text-white/60 leading-none mt-1">
                 {siteData.brand.tagline}
               </p>
             </div>
@@ -74,6 +77,7 @@ export default function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             <button
               onClick={() => setEnquiryOpen(true)}
               className="btn-primary text-sm px-4 py-2"
@@ -84,7 +88,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 rounded-xl border border-white/10 bg-white/5"
+            className="md:hidden p-2 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5"
             onClick={() => setOpen((s) => !s)}
             aria-label="Open menu"
           >
@@ -94,7 +98,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {open && (
-          <div className="md:hidden border-t border-white/10 bg-black/80 backdrop-blur-xl">
+          <div className="md:hidden border-t border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
             <div className="container py-4 flex flex-col gap-2">
               <Link className="nav-link" href="/" onClick={closeMenu}>
                 Home
@@ -121,15 +125,18 @@ export default function Navbar() {
                 Contact Us
               </Link>
 
-              <button
-                onClick={() => {
-                  setEnquiryOpen(true);
-                  setOpen(false);
-                }}
-                className="btn-primary w-full mt-2 text-sm py-2"
-              >
-                Get Enquiry
-              </button>
+              <div className="flex items-center gap-3 mt-2">
+                <ThemeToggle />
+                <button
+                  onClick={() => {
+                    setEnquiryOpen(true);
+                    setOpen(false);
+                  }}
+                  className="btn-primary flex-1 text-sm py-2"
+                >
+                  Get Enquiry
+                </button>
+              </div>
             </div>
           </div>
         )}

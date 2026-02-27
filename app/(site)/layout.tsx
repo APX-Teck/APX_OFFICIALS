@@ -1,9 +1,13 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default function SiteLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="min-h-screen bg-black text-white relative">
+    <div className="min-h-screen relative">
       <div className="bg-blobs">
         <div className="blob b1" />
         <div className="blob b2" />
