@@ -2,16 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import { cn } from "@/lib/cn";
 import { siteData } from "@/lib/siteData";
 import EnquiryModal from "@/components/EnquiryModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, LogIn } from "lucide-react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -20,10 +26,23 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    // Check if user is logged in
+    const token = Cookies.get("token");
+    setIsLoggedIn(!!token);
+  }, [pathname]);
+
   // Close menu on route click
   function closeMenu() {
     setOpen(false);
   }
+
+  const handleLogout = () => {
+    Cookies.remove("token");
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    router.push("/login");
+  };
 
   return (
     <>
@@ -84,6 +103,35 @@ export default function Navbar() {
             >
               Get Enquiry
             </button>
+
+            {isLoggedIn ? (
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-black/10 dark:border-white/10">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-all"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                  aria-label="Logout"
+                >
+                  <LogOut className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center ml-2 pl-2 border-l border-black/10 dark:border-white/10">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Login
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -125,17 +173,51 @@ export default function Navbar() {
                 Contact Us
               </Link>
 
-              <div className="flex items-center gap-3 mt-2">
-                <ThemeToggle />
-                <button
-                  onClick={() => {
-                    setEnquiryOpen(true);
-                    setOpen(false);
-                  }}
-                  className="btn-primary flex-1 text-sm py-2"
-                >
-                  Get Enquiry
-                </button>
+              <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-black/10 dark:border-white/10">
+                <div className="flex items-center gap-3">
+                  <ThemeToggle />
+                  <button
+                    onClick={() => {
+                      setEnquiryOpen(true);
+                      setOpen(false);
+                    }}
+                    className="btn-primary flex-1 text-sm py-2"
+                  >
+                    Get Enquiry
+                  </button>
+                </div>
+
+                {isLoggedIn ? (
+                  <div className="flex flex-col gap-2">
+                    <Link
+                      href="/dashboard"
+                      onClick={closeMenu}
+                      className="flex items-center justify-center gap-2 w-full text-sm font-medium px-4 py-2 bg-black/5 dark:bg-white/5 rounded-xl transition-all"
+                    >
+                      <LayoutDashboard className="w-4 h-4" />
+                      Dashboard
+                    </Link>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        closeMenu();
+                      }}
+                      className="flex items-center justify-center gap-2 w-full text-sm font-medium px-4 py-2 text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={closeMenu}
+                    className="flex items-center justify-center gap-2 w-full text-sm font-medium px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-all"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Login
+                  </Link>
+                )}
               </div>
             </div>
           </div>
