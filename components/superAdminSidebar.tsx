@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import {
   LayoutDashboard,
   Users,
@@ -12,6 +13,7 @@ import {
   MessageSquare,
   ShieldCheck,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -93,6 +95,13 @@ export function SuperAdminSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    Cookies.remove("token");
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
 
   return (
     <Sidebar {...props}>
@@ -165,11 +174,18 @@ export function SuperAdminSidebar({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-black/5 dark:border-white/5">
+      <SidebarFooter className="p-4 border-t border-black/5 dark:border-white/5 flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <span className="text-sm font-medium">Theme Options</span>
         </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center justify-center gap-2 w-full text-sm font-medium px-4 py-2 text-red-500 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-all"
+        >
+          <LogOut className="w-4 h-4" />
+          Logout
+        </button>
       </SidebarFooter>
 
       <SidebarRail />
