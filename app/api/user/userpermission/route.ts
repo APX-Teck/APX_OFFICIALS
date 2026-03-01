@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "userId and permissionId are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Invalid userId or permissionId",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     if (!existingUser) {
       return NextResponse.json(
         { success: false, error: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -52,11 +52,11 @@ export async function POST(request: NextRequest) {
     if (!existingPermission) {
       return NextResponse.json(
         { success: false, error: "Permission not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-      const alreadyAssigned = await prisma.userPermission.findUnique({
+    const alreadyAssigned = await prisma.userPermission.findUnique({
       where: {
         userId_permissionId: {
           userId: userIdNum,
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           success: false,
           error: "Permission already assigned to this user",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -88,16 +88,14 @@ export async function POST(request: NextRequest) {
         message: "Permission assigned successfully",
         data: userPermission,
       },
-      { status: 201 }
+      { status: 201 },
     );
-
   } catch (error: any) {
-
     console.error("Error assigning permission:", error);
 
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -135,8 +133,7 @@ export async function PUT(request: NextRequest) {
     const { error } = await verifyToken(["SUPER_ADMIN"])(request);
     if (error) return error;
 
-    const { userId, oldPermissionId, newPermissionId } =
-      await request.json();
+    const { userId, oldPermissionId, newPermissionId } = await request.json();
 
     if (!userId || !oldPermissionId || !newPermissionId) {
       return NextResponse.json(
@@ -144,7 +141,7 @@ export async function PUT(request: NextRequest) {
           success: false,
           error: "userId, oldPermissionId and newPermissionId are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -159,7 +156,7 @@ export async function PUT(request: NextRequest) {
     ) {
       return NextResponse.json(
         { success: false, error: "Invalid numeric values" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -167,7 +164,7 @@ export async function PUT(request: NextRequest) {
     if (oldPermissionIdNum === newPermissionIdNum) {
       return NextResponse.json(
         { success: false, error: "New permission must be different" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -179,7 +176,7 @@ export async function PUT(request: NextRequest) {
     if (!userExists) {
       return NextResponse.json(
         { success: false, error: "User not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -196,7 +193,7 @@ export async function PUT(request: NextRequest) {
     if (!existingMapping) {
       return NextResponse.json(
         { success: false, error: "Existing permission mapping not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -208,7 +205,7 @@ export async function PUT(request: NextRequest) {
     if (!permissionExists) {
       return NextResponse.json(
         { success: false, error: "New permission not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -236,20 +233,18 @@ export async function PUT(request: NextRequest) {
       message: "User permission updated successfully",
       data: newMapping,
     });
-
   } catch (error: any) {
-
     if (error.code === "P2002") {
       return NextResponse.json(
         { success: false, error: "Permission already assigned" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (error.code === "P2003") {
       return NextResponse.json(
         { success: false, error: "Foreign key constraint failed" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -257,15 +252,13 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 //delete user permission
-export async function DELETE(
-  request: NextRequest
-) {
+export async function DELETE(request: NextRequest) {
   try {
     const { error } = await verifyToken(["SUPER_ADMIN"])(request);
     if (error) {

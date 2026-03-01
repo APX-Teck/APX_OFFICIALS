@@ -125,7 +125,7 @@ export default function HeroCarousel() {
           <div className="mt-10 flex items-center gap-4">
             <button
               onClick={prev}
-              className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition"
+              className="p-2 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition"
               aria-label="Previous slide"
             >
               <ChevronLeft size={18} />
@@ -144,7 +144,7 @@ export default function HeroCarousel() {
 
             <button
               onClick={next}
-              className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition"
+              className="p-2 rounded-xl border border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition"
               aria-label="Next slide"
             >
               <ChevronRight size={18} />

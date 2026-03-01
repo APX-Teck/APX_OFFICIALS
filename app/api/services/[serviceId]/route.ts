@@ -4,8 +4,9 @@ import { verifyToken } from "@/lib/middleware/roleVerification";
 import { serviceValidation } from "@/lib/validation/service.validation";
 
 // UPDATE SERVICE
-export async function PUT(req: NextRequest,
-  { params }: { params: Promise<{ serviceId: string }> }
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: Promise<{ serviceId: string }> },
 ) {
   try {
     const { error, user } = await verifyToken(["SUPER_ADMIN"])(req);
@@ -13,8 +14,8 @@ export async function PUT(req: NextRequest,
       return error;
     }
 
-    const resolvedParams = await params;
-    const serviceId = parseInt(resolvedParams.serviceId);
+    const { serviceId: serviceIdStr } = await params;
+    const serviceId = parseInt(serviceIdStr);
 
     const body = await req.json();
     const parsedData = serviceValidation.safeParse(body);
@@ -60,8 +61,9 @@ export async function PUT(req: NextRequest,
 }
 
 //get by id
-export async function GET(req: NextRequest,
-  { params }: { params: Promise<{ serviceId: string }> }
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ serviceId: string }> },
 ) {
   try {
     const resolvedParams = await params;
@@ -70,7 +72,10 @@ export async function GET(req: NextRequest,
     const service = await prisma.service.findUnique({
       where: {
         id: serviceId,
-      }
+      },
+      include: {
+        fields: true,
+      },
     });
 
     return NextResponse.json(
@@ -87,8 +92,9 @@ export async function GET(req: NextRequest,
 }
 
 // DELETE SERVICE
-export async function DELETE(req: NextRequest,
-  { params }: { params: Promise<{ serviceId: string }> }
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ serviceId: string }> },
 ) {
   try {
     const { error, user } = await verifyToken(["SUPER_ADMIN"])(req);

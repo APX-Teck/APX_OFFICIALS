@@ -3,7 +3,6 @@ import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
 import { serviceValidation } from "@/lib/validation/service.validation";
 
-
 //create service
 export async function POST(req: NextRequest) {
   try {
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Error creating service:", error);
     return NextResponse.json(
-      { success: false, message: "Internal server error" },
+      { success: false, message: "Internal server error", error },
       { status: 500 },
     );
   }
@@ -55,16 +54,59 @@ export async function POST(req: NextRequest) {
 // GET ALL ACTIVE SERVICES
 export async function GET(req: NextRequest) {
   try {
+    const { error } = await verifyToken(["SUPER_ADMIN"])(req);
+    if (error) return error;
+
+    const { searchParams } = new URL(req.url);
+
+    const serviceName = searchParams.get("name")?.trim();
+    const serviceDescription = searchParams.get("description")?.trim();
+
+    const where: any = {};
+
+    // If name filter exists
+    if (serviceName) {
+      where.name = {
+        contains: serviceName,
+        mode: "insensitive",
+      };
+    }
+
+    // If description filter exists
+    if (serviceDescription) {
+      where.description = {
+        contains: serviceDescription,
+        mode: "insensitive",
+      };
+    }
 
     const services = await prisma.service.findMany({
-      where: {
-        isActive: true,
+      where,
+      include: {
+        fields: true,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 
-    return NextResponse.json({ success: true, message: "Services fetched successfully", data: services }, { status: 200 });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Services fetched successfully",
+        data: services,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error fetching services:", error);
-    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
+      },
+      { status: 500 }
+    );
   }
 }

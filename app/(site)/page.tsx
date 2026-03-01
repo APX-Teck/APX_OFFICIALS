@@ -6,6 +6,8 @@ import Testimonials from "@/components/Testimonials";
 import ProcessFlow from "@/components/ProcessFlow";
 import FAQ from "@/components/FAQ";
 
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   return (
     <>
@@ -20,11 +22,7 @@ export default function HomePage() {
         <ServiceCards />
       </Section>
 
-      <Section
-        eyebrow="Trusted"
-        title="Brands that trust APX"
-        description=""
-      >
+      <Section eyebrow="Trusted" title="Brands that trust APX" description="">
         <ClientLogos />
       </Section>
 

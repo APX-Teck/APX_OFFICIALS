@@ -3,6 +3,3 @@ import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
 
 //delete user permission
-
-
-
