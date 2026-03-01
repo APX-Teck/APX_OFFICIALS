@@ -14,6 +14,7 @@ interface JWTPayload {
   id: number;
   role: UserRole;
   email: string;
+  isActive: boolean;
 }
 
 export function verifyToken(requiredRoles: UserRole[] = []) {
@@ -63,6 +64,14 @@ export function verifyToken(requiredRoles: UserRole[] = []) {
                 ", ",
               )}`,
             },
+            { status: 403 },
+          ),
+        };
+      }
+      if(decoded.isActive === false){
+        return {
+          error: NextResponse.json(
+            { message: "User is not active" },
             { status: 403 },
           ),
         };

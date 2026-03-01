@@ -3,14 +3,16 @@ import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
 import { blogValidation } from "@/lib/validation/blog.validation";
 import UploadService from "@/lib/service/imagekit/upload";
+import { Prisma } from "@prisma/client";
 
 //increment the view count
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { blogId: string } },
+  { params }: { params: Promise<{ blogId: string }> },
 ) {
   try {
-    const blogId = Number(params.blogId);
+    const id = await params;
+    const blogId = Number(id.blogId);
 
     if (isNaN(blogId)) {
       return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
@@ -51,95 +53,159 @@ export async function PATCH(
 //update the blog
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { blogId: string } },
+  { params }: { params: Promise<{ blogId: string }> },
 ) {
   try {
     const { error, user } = await verifyToken(["SUPER_ADMIN", "EDITOR"])(req);
-    if (error) {
-      return error;
+    if (error) return error;
+
+    if (!user?.id) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const id = await params;
+    const blogId = Number(id.blogId);
+
+    if (Number.isNaN(blogId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid blog ID" },
+        { status: 400 },
+      );
+    }
+
+    const existingBlog = await prisma.blogPost.findUnique({
+      where: { id: blogId },
+    });
+
+    if (!existingBlog) {
+      return NextResponse.json(
+        { success: false, message: "Blog not found" },
+        { status: 404 },
+      );
     }
 
     const formData = await req.formData();
     const file = formData.get("thumbnail") as File | null;
-    const blogId = Number(params.blogId);
 
-    if (isNaN(blogId)) {
-      return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+    let slugValue = formData.get("slug")?.toString() || existingBlog.slug;
+
+    if (!slugValue || slugValue.trim() === "") {
+      slugValue =
+        formData
+          .get("title")
+          ?.toString()
+          ?.toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-|-$)+/g, "") || existingBlog.slug;
     }
 
-    // Create an object to validate with Zod
-    // Provide a dummy URL for thumbnail temporarily to pass the validation
-    const objToValidate = {
-      title: formData.get("title"),
-      slug: formData.get("slug"),
-      content: formData.get("content"),
-      status: formData.get("status"),
-      authorId: Number(formData.get("authorId")),
-      thumbnail: "http://temp-url.com/pass-validation",
+    const parsedData = {
+      title: formData.get("title")?.toString() || existingBlog.title,
+      slug: slugValue,
+      content: formData.get("content")?.toString() || existingBlog.content,
+      status: formData.get("status")?.toString() || existingBlog.status,
     };
 
-    const validation = blogValidation.safeParse(objToValidate);
+    const validation = blogValidation
+      .omit({ thumbnail: true, authorId: true })
+      .safeParse(parsedData);
 
     if (!validation.success) {
-      return NextResponse.json({ error: validation.error }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Validation Failed",
+          error: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 },
+      );
     }
 
-    const { title, slug, content, status, authorId } = validation.data;
+    const { title, slug, content, status } = validation.data;
 
-    // Increased timeout to 15s to allow for the image upload to ImageKit
-    const finalBlog = await prisma.$transaction(
-      async (tx) => {
-        const newBlog = await tx.blogPost.update({
-          where: { id: Number(blogId) },
-          data: {
-            title,
-            slug,
-            content,
-            status,
-            authorId,
-          },
-        });
+    // Check slug uniqueness (if changed)
+    if (slug !== existingBlog.slug) {
+      const slugExists = await prisma.blogPost.findUnique({
+        where: { slug },
+      });
 
-        if (file) {
-          const buffer = Buffer.from(await file.arrayBuffer());
-          const fileExtension = file.name.split(".").pop() || "jpg";
-          const safeTitle = title.replace(/[^a-zA-Z0-9]/g, "-");
-          const fileName = `${newBlog.id}-${safeTitle}.${fileExtension}`;
+      if (slugExists) {
+        return NextResponse.json(
+          { success: false, message: "Slug already exists" },
+          { status: 400 },
+        );
+      }
+    }
 
-          const uploadResult = await UploadService.uploadDocument(
-            buffer,
-            fileName,
-            "/APX/POSTS",
-          );
+    let thumbnailUrl = existingBlog.thumbnail;
+    let fileId = existingBlog.fieldId;
 
-          const updatedBlog = await tx.blogPost.update({
-            where: { id: newBlog.id },
-            data: {
-              thumbnail: uploadResult.url,
-            },
-          });
+    // If new thumbnail uploaded
+    if (file) {
+      try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const fileExtension = file.name.split(".").pop() || "jpg";
+        const safeTitle = title.replace(/[^a-zA-Z0-9]/g, "-");
+        const fileName = `${existingBlog.id}-${safeTitle}.${fileExtension}`;
 
-          return updatedBlog;
+        // Optional: delete old image
+        if (existingBlog.fieldId) {
+          await UploadService.deleteImage(existingBlog.fieldId).catch(() => {});
         }
 
-        return newBlog;
+        const uploadResult = await UploadService.uploadDocument(
+          buffer,
+          fileName,
+          "/APX/POSTS",
+        );
+
+        thumbnailUrl = uploadResult.url;
+        fileId = uploadResult.fileId;
+      } catch (uploadError) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Failed to upload new thumbnail",
+          },
+          { status: 500 },
+        );
+      }
+    }
+
+    const updatedBlog = await prisma.blogPost.update({
+      where: { id: blogId },
+      data: {
+        title,
+        slug,
+        content,
+        status,
+        thumbnail: thumbnailUrl,
+        fieldId: fileId,
       },
-      { timeout: 15000 },
-    );
+    });
 
     return NextResponse.json({
       success: true,
       message: "Blog updated successfully",
-      data: finalBlog,
+      data: updatedBlog,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error updating blog:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { success: false, message: "Duplicate slug" },
+          { status: 400 },
+        );
+      }
+    }
+
     return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to update blog",
-        error: error.message,
-      },
+      { success: false, message: "Internal server error" },
       { status: 500 },
     );
   }
@@ -148,44 +214,53 @@ export async function PUT(
 //delete blog
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { blogId: string } },
+  { params }: { params: Promise<{ blogId: string }> },
 ) {
   try {
-    const { error, user } = await verifyToken(["SUPER_ADMIN"])(req);
-    if (error) {
-      return error;
+    const { error } = await verifyToken(["SUPER_ADMIN"])(req);
+    if (error) return error;
+    const id = await params;
+    const blogId = Number(id.blogId);
+
+    if (!blogId || isNaN(blogId)) {
+      return NextResponse.json(
+        { success: false, message: "Invalid blog ID" },
+        { status: 400 },
+      );
     }
-
-    const blogId = Number(params.blogId);
-
-    if (isNaN(blogId)) {
-      return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
-    }
-
     const existingBlog = await prisma.blogPost.findUnique({
       where: { id: blogId },
+      select: { fieldId: true },
     });
 
     if (!existingBlog) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Blog not found" },
+        { status: 404 },
+      );
     }
 
-    const blog = await prisma.blogPost.delete({
+    if (existingBlog.fieldId) {
+      await UploadService.deleteImage(existingBlog.fieldId);
+    }
+
+    // Direct delete (Prisma throws error if not found)
+    const deletedBlog = await prisma.blogPost.delete({
       where: { id: blogId },
     });
 
     return NextResponse.json({
       success: true,
       message: "Blog deleted successfully",
-      data: blog,
+      data: deletedBlog,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error deleting blog:", error);
+
     return NextResponse.json(
       {
         success: false,
         message: "Failed to delete blog",
-        error: error.message,
       },
       { status: 500 },
     );
@@ -199,6 +274,7 @@ export async function POST(
 ) {
   try {
     const blogId = Number(params.blogId);
+
     if (isNaN(blogId)) {
       return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
     }

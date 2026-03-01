@@ -159,13 +159,13 @@ export default function EnquiryModal({
         {/* Body */}
         <div className="p-6 modal-scroll">
           {success && (
-            <div className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-200">
+            <div className="mb-5 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-emerald-700 dark:text-emerald-200">
               ✅ Thank you! Your enquiry has been submitted successfully.
             </div>
           )}
 
           {error && (
-            <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-200">
+            <div className="mb-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-700 dark:text-red-200">
               ❌ {error}
             </div>
           )}

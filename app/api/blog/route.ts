@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     const formData = await req.formData();
+
     const file = formData.get("thumbnail") as File | null;
 
     if (!file) {
@@ -35,16 +36,28 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    const objToValidate = {
-      title: formData.get("title"),
-      slug: formData.get("slug"),
-      content: formData.get("content"),
-      status: formData.get("status"),
-      authorId: Number(formData.get("authorId")),
-      thumbnail: "http://temp-url.com/pass-validation",
+
+    let slugValue = formData.get("slug")?.toString() || "No Link Found";
+
+    if (!slugValue || slugValue.trim() === "") {
+      slugValue = "No Link Found"
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+    }
+
+    const parsedData = {
+      title:formData.get("title")?.toString() || "",
+      slug: slugValue,
+      content: formData.get("content")?.toString() || "",
+      status: formData.get("status")?.toString() || "DRAFT",
     };
 
-    const validation = blogValidation.safeParse(objToValidate);
+    const validation = blogValidation
+      .omit({ thumbnail: true, authorId: true })
+      .safeParse(parsedData);
+
+    const authorId = user.id;
 
     if (!validation.success) {
       return NextResponse.json(
@@ -57,7 +70,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, slug, content, status, authorId } = validation.data;
+    const { title, slug, content, status } = validation.data;
 
     // 1. Create the blog post in the database first (without thumbnail)
     let newBlog;
@@ -119,9 +132,15 @@ export async function POST(req: NextRequest) {
         where: { id: newBlog.id },
         data: {
           thumbnail: uploadResult.url,
+          fieldId: uploadResult.fileId,
         },
       });
     } catch (updateError: any) {
+      // Rollback: delete the blog post if the update fails to prevent a blog without a thumbnail
+      await prisma.blogPost
+        .delete({ where: { id: newBlog.id } })
+        .catch(console.error);
+
       return NextResponse.json(
         {
           success: false,
@@ -144,6 +163,81 @@ export async function POST(req: NextRequest) {
         success: false,
         message: "Internal server error",
         error: error,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+//filter blogs using pagination
+export async function GET(req: NextRequest) {
+  try {
+    const { error, user } = await verifyToken(["SUPER_ADMIN", "EDITOR"])(req);
+    if (error) return error;
+
+    const searchParams = req.nextUrl.searchParams;
+
+    const title = searchParams.get("title")?.trim();
+    const content = searchParams.get("content")?.trim();
+    const status = searchParams.get("status")?.trim();
+
+    const page = Math.max(parseInt(searchParams.get("page") || "1"), 1);
+    const limit = Math.min(
+      Math.max(parseInt(searchParams.get("limit") || "10"), 1),
+      100,
+    );
+    const offset = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (title) {
+      where.title = {
+        contains: title,
+        mode: "insensitive",
+      };
+    }
+
+    if (content) {
+      where.content = {
+        contains: content,
+        mode: "insensitive",
+      };
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const [blogs, total] = await Promise.all([
+      prisma.blogPost.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.blogPost.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      message: "Blogs fetched successfully",
+      data: {
+        blogs,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Internal server error",
       },
       { status: 500 },
     );

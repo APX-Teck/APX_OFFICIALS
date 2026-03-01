@@ -16,6 +16,12 @@ export async function POST(req: NextRequest) {
         { status: 404 },
       );
     }
+    if (!user.isActive) {
+      return NextResponse.json(
+        { success: false, message: "User is not active" },
+        { status: 403 },
+      );
+    }
 
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
@@ -26,7 +32,12 @@ export async function POST(req: NextRequest) {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        isActive: user.isActive,
+      },
       process.env.JWT_SECRET as string,
       {
         expiresIn: process.env.JWT_EXPIRE as any,
