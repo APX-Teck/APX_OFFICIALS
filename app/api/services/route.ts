@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
 import { serviceValidation } from "@/lib/validation/service.validation";
+import { imagekit } from "@/lib/service/imagekit/upload";
 
 //create service
 export async function POST(req: NextRequest) {
@@ -11,8 +12,29 @@ export async function POST(req: NextRequest) {
       return error;
     }
 
-    const body = await req.json();
-    const parsedData = serviceValidation.safeParse(body);
+    const formData = await req.formData();
+
+    const file = formData.get("thumbnail") as File | null;
+
+    if (!file) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Thumbnail image file is required",
+          error: "Missing file",
+        },
+        { status: 400 },
+      );
+    }
+    const parsedData = serviceValidation.safeParse({
+      name: formData.get("name"),
+      description: formData.get("description"),
+      isActive: formData.has("isActive")
+        ? formData.get("isActive") === "true"
+        : undefined,
+      slug: formData.get("slug") || undefined,
+      thumbnail: formData.get("thumbnail"),
+    });
 
     if (!parsedData.success) {
       const flattenedErrors = parsedData.error.flatten();
@@ -28,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, description, isActive, slug } = parsedData.data;
-
+    // CREATE SERVICE IN DB
     const service = await prisma.service.create({
       data: {
         name,
@@ -37,9 +59,68 @@ export async function POST(req: NextRequest) {
         slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
       },
     });
+    //UPLOAD SERVICE IMAGE
+    let uploadResult;
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const fileExtension = file.name.split(".").pop() || "jpg";
+      const safeTitle = name.replace(/[^a-zA-Z0-9]/g, "-");
+      const fileName = `${service.id}-${safeTitle}.${fileExtension}`;
+
+      uploadResult = await imagekit.upload({
+        file: buffer,
+        fileName: fileName,
+        useUniqueFileName: false,
+        folder: "/APX/SERVICES",
+      });
+    } catch (uploadError: any) {
+      // Rollback: delete the recently created service to prevent orphaned records
+      await prisma.service
+        .delete({ where: { id: service.id } })
+        .catch(console.error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Failed to upload thumbnail to ImageKit",
+          error: uploadError,
+        },
+        { status: 500 },
+      );
+    }
+
+    //UPDATE IMAGE DATA
+    let finalService;
+    try {
+      finalService = await prisma.service.update({
+        where: { id: service.id },
+        data: {
+          thumbnail: uploadResult.url,
+          thumbnailFieldId: uploadResult.fileId,
+        },
+      });
+    } catch (updateError: any) {
+      // Rollback: delete the service if the update fails to prevent a service without a thumbnail
+      await prisma.service
+        .delete({ where: { id: service.id } })
+        .catch(console.error);
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Failed to update service with thumbnail URL",
+          error: updateError,
+        },
+        { status: 500 },
+      );
+    }
 
     return NextResponse.json(
-      { success: true, message: "Service created successfully", data: service },
+      {
+        success: true,
+        message: "Service created successfully",
+        data: finalService,
+      },
       { status: 201 },
     );
   } catch (error) {
@@ -54,8 +135,8 @@ export async function POST(req: NextRequest) {
 // GET ALL ACTIVE SERVICES
 export async function GET(req: NextRequest) {
   try {
-    const { error } = await verifyToken(["SUPER_ADMIN"])(req);
-    if (error) return error;
+    // const { error } = await verifyToken(["SUPER_ADMIN"])(req);
+    // if (error) return error;
 
     const { searchParams } = new URL(req.url);
 
@@ -96,7 +177,7 @@ export async function GET(req: NextRequest) {
         message: "Services fetched successfully",
         data: services,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error fetching services:", error);
@@ -106,7 +187,7 @@ export async function GET(req: NextRequest) {
         success: false,
         message: "Internal server error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

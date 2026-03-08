@@ -172,11 +172,11 @@ export async function POST(req: NextRequest) {
 //filter blogs using pagination
 export async function GET(req: NextRequest) {
   try {
-    const { error, user } = await verifyToken(["SUPER_ADMIN", "EDITOR"])(req);
-    if (error) return error;
+    // const { error, user } = await verifyToken(["SUPER_ADMIN", "EDITOR"])(req);
+    // if (error) return error;
 
     const searchParams = req.nextUrl.searchParams;
-
+``
     const title = searchParams.get("title")?.trim();
     const content = searchParams.get("content")?.trim();
     const status = searchParams.get("status")?.trim();

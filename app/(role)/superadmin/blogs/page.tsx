@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import RichTextEditor from "./rich-text-editor";
 
 const BlogsPage = () => {
   const [data, setData] = useState<Blog[]>([]);
@@ -34,6 +36,7 @@ const BlogsPage = () => {
   // Create Modal State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
+  const [content, setContent] = useState("");
 
   // Filters & Pagination
   const [titleFilter, setTitleFilter] = useState<string>("");
@@ -89,13 +92,19 @@ const BlogsPage = () => {
 
   const handleCreateBlog = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!content.trim()) {
+      toast.error("Content is required");
+      return;
+    }
     setCreateLoading(true);
     const formData = new FormData(e.currentTarget);
+    formData.set("content", content);
     try {
       const result = await createBlog(formData);
       if (result?.success) {
         toast.success("Blog created successfully");
         setIsCreateOpen(false);
+        setContent("");
         fetchBlogs();
       } else {
         toast.error(result?.message || "Failed to create blog");
@@ -124,65 +133,127 @@ const BlogsPage = () => {
                 <Plus className="mr-2 h-4 w-4" /> Create Blog Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Create Blog Post</DialogTitle>
+            <DialogContent className="max-w-5xl h-[85vh] flex flex-col p-6">
+              <DialogHeader className="mb-4">
+                <DialogTitle className="text-2xl font-bold">
+                  Create New Blog Post
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground">
+                  Fill in the details below to create and publish a new blog
+                  post.
+                </p>
               </DialogHeader>
-              <form onSubmit={handleCreateBlog} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    name="title"
-                    required
-                    placeholder="Blog Title"
-                  />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full overflow-hidden">
+                {/* Left side: Form */}
+                <form
+                  onSubmit={handleCreateBlog}
+                  className="flex flex-col gap-5 overflow-y-auto pr-2 pb-16"
+                >
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="title" className="font-semibold text-sm">
+                      Title
+                    </Label>
+                    <Input
+                      id="title"
+                      name="title"
+                      required
+                      placeholder="Catchy Blog Title..."
+                      className="border-gray-200 focus:ring-primary shadow-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="slug" className="font-semibold text-sm">
+                      Slug (optional)
+                    </Label>
+                    <Input
+                      id="slug"
+                      name="slug"
+                      placeholder="e.g. how-to-deploy-nextjs"
+                      className="border-gray-200 focus:ring-primary shadow-sm"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="status" className="font-semibold text-sm">
+                      Status
+                    </Label>
+                    <Select name="status" defaultValue="DRAFT">
+                      <SelectTrigger className="shadow-sm">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="DRAFT">Draft</SelectItem>
+                        <SelectItem value="PUBLISHED">Published</SelectItem>
+                        <SelectItem value="ARCHIVED">Archived</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label
+                      htmlFor="thumbnail"
+                      className="font-semibold text-sm"
+                    >
+                      Thumbnail Image
+                    </Label>
+                    <Input
+                      id="thumbnail"
+                      name="thumbnail"
+                      type="file"
+                      required
+                      accept="image/*"
+                      className="cursor-pointer shadow-sm file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 h-full flex-grow">
+                    <Label className="font-semibold text-sm">Content</Label>
+                    <div className="rounded-md border bg-card text-card-foreground shadow-sm bg-white dark:bg-zinc-950 pb-16">
+                      <RichTextEditor value={content} onChange={setContent} />
+                    </div>
+                  </div>
+
+                  <div className="mt-auto pt-6 flex w-full sticky bottom-0 bg-background/80 backdrop-blur-sm">
+                    <Button
+                      type="submit"
+                      disabled={createLoading}
+                      className="w-full"
+                    >
+                      {createLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        "Publish Blog Post"
+                      )}
+                    </Button>
+                  </div>
+                </form>
+
+                {/* Right side: Modern Live Preview */}
+                <div className="hidden lg:flex flex-col border rounded-lg bg-zinc-50 dark:bg-zinc-900 overflow-hidden shadow-inner">
+                  <div className="bg-zinc-200 dark:bg-zinc-800 p-3 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="text-xs bg-white dark:bg-zinc-950"
+                    >
+                      Live Preview
+                    </Badge>
+                  </div>
+                  <div className="p-8 overflow-y-auto w-full h-full ql-editor break-words custom-quill-preview">
+                    {!content ? (
+                      <div className="flex flex-col items-center justify-center h-[50vh] text-muted-foreground gap-4 opacity-50">
+                        <div className="i-lucide-pen-tool w-12 h-12" />
+                        <p className="text-lg">
+                          Start typing to see your live preview here...
+                        </p>
+                      </div>
+                    ) : (
+                      <div dangerouslySetInnerHTML={{ __html: content }} />
+                    )}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="slug">Slug (optional)</Label>
-                  <Input id="slug" name="slug" placeholder="custom-slug-here" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    name="content"
-                    required
-                    placeholder="Write your blog content here..."
-                    className="h-32"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select name="status" defaultValue="DRAFT">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="DRAFT">Draft</SelectItem>
-                      <SelectItem value="PUBLISHED">Published</SelectItem>
-                      <SelectItem value="ARCHIVED">Archived</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="thumbnail">Thumbnail</Label>
-                  <Input
-                    id="thumbnail"
-                    name="thumbnail"
-                    type="file"
-                    required
-                    accept="image/*"
-                  />
-                </div>
-                <Button type="submit" disabled={createLoading}>
-                  {createLoading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    "Create Blog"
-                  )}
-                </Button>
-              </form>
+              </div>
             </DialogContent>
           </Dialog>
         </div>

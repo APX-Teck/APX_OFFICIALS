@@ -5,6 +5,7 @@ export const serviceValidation = z.object({
   description: z.string().min(1, "Service description is required"),
   isActive: z.boolean().default(true),
   slug: z.string().min(1, "Service slug is optional").optional(),
+  thumbnail: z.instanceof(File, { message: "Thumbnail is required" }).optional(),
 });
 
 export const serviceFieldValidation = z.object({
