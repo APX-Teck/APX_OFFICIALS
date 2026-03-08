@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/data-table";
 import { columns, Service } from "./columns"; // <-- Imported from relative path
+import { getServices, createService } from "@/lib/apiServices/service";
 import Cookies from "js-cookie";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -47,19 +48,11 @@ const ServicesPage = () => {
   const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
-      const token = Cookies.get("token") || localStorage.getItem("token");
+      const params: Record<string, string> = {};
+      if (nameFilter.trim()) params.name = nameFilter.trim();
+      if (descFilter.trim()) params.description = descFilter.trim();
 
-      const searchParams = new URLSearchParams();
-      if (nameFilter.trim()) searchParams.set("name", nameFilter.trim());
-      if (descFilter.trim()) searchParams.set("description", descFilter.trim());
-
-      const queryStr = searchParams.toString();
-      const endpoint = queryStr ? `/api/services?${queryStr}` : `/api/services`;
-
-      const res = await fetch(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await res.json();
+      const result = await getServices(params);
       if (result.success) {
         setData(result.data);
       } else {
@@ -106,8 +99,6 @@ const ServicesPage = () => {
 
     setCreateLoading(true);
     try {
-      const token = Cookies.get("token") || localStorage.getItem("token");
-
       const submitData = new FormData();
       submitData.append("name", formData.name);
       submitData.append("description", formData.description);
@@ -118,14 +109,7 @@ const ServicesPage = () => {
       submitData.append("isActive", String(formData.isActive));
       submitData.append("thumbnail", formData.thumbnail);
 
-      const res = await fetch(`/api/services`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: submitData,
-      });
-      const result = await res.json();
+      const result = await createService(submitData);
       if (result.success) {
         toast.success("Service created successfully");
         setIsCreateOpen(false);

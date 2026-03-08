@@ -31,9 +31,11 @@ export default function DashboardCharts({
   return (
     <div className="space-y-8 mt-8">
       {/* Monthly Area Chart for Trends */}
-      <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Growth Trends</h2>
-        <p className="text-sm text-gray-500 mb-6">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-white/10 p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
+        <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
+          Growth Trends
+        </h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
           User, Service, and Blog creation over the past 6 months.
         </p>
         <div className="h-80">
@@ -76,11 +78,13 @@ export default function DashboardCharts({
               <RechartsTooltip
                 cursor={{ fill: "transparent" }}
                 contentStyle={{
+                  backgroundColor: "#ffffff",
                   borderRadius: "12px",
                   border: "none",
                   boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
                   padding: "12px",
                 }}
+                itemStyle={{ color: "#374151", fontWeight: 500 }}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: "20px" }} />
               <Area
@@ -117,11 +121,11 @@ export default function DashboardCharts({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Distribution Pie/Donut Chart */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-white/10 p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
             Entity Distribution
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             Proportion of all platform resources by type.
           </p>
           <div className="h-80 flex justify-center items-center">
@@ -147,6 +151,7 @@ export default function DashboardCharts({
                 </Pie>
                 <RechartsTooltip
                   contentStyle={{
+                    backgroundColor: "#ffffff",
                     borderRadius: "12px",
                     border: "none",
                     boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
@@ -166,11 +171,11 @@ export default function DashboardCharts({
         </div>
 
         {/* Roles Distribution Pie/Donut Chart */}
-        <div className="bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-100 p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
-          <h2 className="text-xl font-bold text-gray-800 mb-2">
+        <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-white/10 p-6 md:p-8 transition-all duration-300 hover:shadow-xl">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-2">
             Roles Distribution
           </h2>
-          <p className="text-sm text-gray-500 mb-6">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
             Proportion of platform users by role mapping.
           </p>
           <div className="h-80 flex justify-center items-center">
@@ -196,6 +201,7 @@ export default function DashboardCharts({
                 </Pie>
                 <RechartsTooltip
                   contentStyle={{
+                    backgroundColor: "#ffffff",
                     borderRadius: "12px",
                     border: "none",
                     boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",

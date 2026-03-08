@@ -94,13 +94,13 @@ export default async function SuperAdminDashboard() {
   ];
 
   return (
-    <div className="p-6 md:p-10 space-y-8 bg-gray-50/50 min-h-screen">
+    <div className="p-6 md:p-10 space-y-8 bg-gray-50/50 dark:bg-black min-h-screen">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">
             Analytics Dashboard
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Monitor your platform's growth and data distribution.
           </p>
         </div>
@@ -141,7 +141,7 @@ function StatsCard({
   color: string;
 }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm hover:shadow-md border border-gray-100 p-6 flex flex-col justify-center space-y-4 transition-all duration-300 hover:-translate-y-1 group">
+    <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-sm hover:shadow-md border border-gray-100 dark:border-white/10 p-6 flex flex-col justify-center space-y-4 transition-all duration-300 hover:-translate-y-1 group">
       <div className="flex items-center space-x-4">
         <div
           className={`w-14 h-14 rounded-2xl flex items-center justify-center text-white ${color} shadow-lg shadow-${color.replace("bg-", "")}/30 group-hover:scale-110 transition-transform duration-300`}
@@ -149,10 +149,10 @@ function StatsCard({
           <span className="text-2xl font-black">{title[6] || "A"}</span>
         </div>
         <div>
-          <h3 className="text-gray-500 text-sm font-semibold uppercase tracking-wider">
+          <h3 className="text-gray-500 dark:text-gray-400 text-sm font-semibold uppercase tracking-wider">
             {title}
           </h3>
-          <p className="text-3xl font-extrabold text-gray-800 tracking-tight mt-1">
+          <p className="text-3xl font-extrabold text-gray-800 dark:text-gray-100 tracking-tight mt-1">
             {value.toLocaleString()}
           </p>
         </div>

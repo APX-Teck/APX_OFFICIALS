@@ -32,6 +32,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import Cookies from "js-cookie";
 import { Textarea } from "@/components/ui/textarea";
+import { updateService, deleteService } from "@/lib/apiServices/service";
 
 export type Service = {
   id: number;
@@ -76,8 +77,6 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
   const handleSaveEdit = async () => {
     setSaveLoading(true);
     try {
-      const token = Cookies.get("token") || localStorage.getItem("token");
-
       const submitData = new FormData();
       submitData.append("name", formData.name);
       submitData.append("description", formData.description);
@@ -90,14 +89,7 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
         submitData.append("thumbnail", formData.thumbnail);
       }
 
-      const res = await fetch(`/api/services/${service.id}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: submitData,
-      });
-      const result = await res.json();
+      const result = await updateService(service.id, submitData);
       if (result.success) {
         toast.success("Service updated successfully");
         setIsEditDialogOpen(false);
@@ -116,12 +108,7 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
     if (confirm("Are you sure you want to permanently delete this service?")) {
       setActionLoading(true);
       try {
-        const token = Cookies.get("token") || localStorage.getItem("token");
-        const res = await fetch(`/api/services/${service.id}`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const result = await res.json();
+        const result = await deleteService(service.id);
         if (result.success) {
           toast.success("Service deleted successfully");
           notifyRefresh();
