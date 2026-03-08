@@ -68,7 +68,7 @@ export default function HeroCarousel() {
       </div>
 
       {/* Overlay */}
-      <div className="hero-overlay" />
+      <div className="hero-overlay opacity-0" />
 
       {/* Content */}
       <div className="container hero-inner">
