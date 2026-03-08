@@ -39,6 +39,7 @@ export type Service = {
   description: string;
   slug: string;
   isActive: boolean;
+  thumbnail: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -53,6 +54,7 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
     description: service.description,
     slug: service.slug,
     isActive: service.isActive,
+    thumbnail: null as File | null,
   });
 
   // Fire an event so page.tsx can refetch
@@ -66,6 +68,7 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
       description: service.description,
       slug: service.slug,
       isActive: service.isActive,
+      thumbnail: null,
     });
     setIsEditDialogOpen(true);
   };
@@ -74,19 +77,25 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
     setSaveLoading(true);
     try {
       const token = Cookies.get("token") || localStorage.getItem("token");
+
+      const submitData = new FormData();
+      submitData.append("name", formData.name);
+      submitData.append("description", formData.description);
+      submitData.append(
+        "slug",
+        formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-"),
+      );
+      submitData.append("isActive", String(formData.isActive));
+      if (formData.thumbnail) {
+        submitData.append("thumbnail", formData.thumbnail);
+      }
+
       const res = await fetch(`/api/services/${service.id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          slug:
-            formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-"),
-          isActive: formData.isActive,
-        }),
+        body: submitData,
       });
       const result = await res.json();
       if (result.success) {
@@ -205,6 +214,33 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-thumbnail" className="text-right text-sm">
+                New Thumbnail
+              </Label>
+              <Input
+                id="edit-thumbnail"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setFormData({ ...formData, thumbnail: file });
+                }}
+                className="col-span-3"
+              />
+            </div>
+            {service.thumbnail && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <div className="col-start-2 col-span-3 text-xs text-muted-foreground flex items-center gap-2">
+                  <span>Current:</span>
+                  <img
+                    src={service.thumbnail}
+                    alt="current thumbnail"
+                    className="h-8 w-8 object-cover rounded-md"
+                  />
+                </div>
+              </div>
+            )}
+            <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="isActive" className="text-right">
                 Status
               </Label>
@@ -239,6 +275,24 @@ const ServiceActionCell = ({ service }: { service: Service }) => {
 };
 
 export const columns: ColumnDef<Service>[] = [
+  {
+    accessorKey: "thumbnail",
+    header: "Image",
+    cell: ({ row }) => {
+      const url = row.getValue("thumbnail") as string | null;
+      if (!url)
+        return (
+          <div className="h-10 w-10 bg-gray-100 rounded-md border border-gray-200" />
+        );
+      return (
+        <img
+          src={url}
+          alt="thumbnail"
+          className="h-10 w-10 object-cover rounded-md border border-gray-200"
+        />
+      );
+    },
+  },
   {
     accessorKey: "name",
     header: "Service Name",

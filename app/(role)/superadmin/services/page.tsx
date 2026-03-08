@@ -41,6 +41,7 @@ const ServicesPage = () => {
     description: "",
     slug: "",
     isActive: true,
+    thumbnail: null as File | null,
   });
 
   const fetchServices = useCallback(async () => {
@@ -83,7 +84,13 @@ const ServicesPage = () => {
   }, [fetchServices]);
 
   const handleCreateOpen = () => {
-    setFormData({ name: "", description: "", slug: "", isActive: true });
+    setFormData({
+      name: "",
+      description: "",
+      slug: "",
+      isActive: true,
+      thumbnail: null,
+    });
     setIsCreateOpen(true);
   };
 
@@ -92,23 +99,31 @@ const ServicesPage = () => {
       toast.error("Name and description are required");
       return;
     }
+    if (!formData.thumbnail) {
+      toast.error("Thumbnail image is required");
+      return;
+    }
 
     setCreateLoading(true);
     try {
       const token = Cookies.get("token") || localStorage.getItem("token");
+
+      const submitData = new FormData();
+      submitData.append("name", formData.name);
+      submitData.append("description", formData.description);
+      submitData.append(
+        "slug",
+        formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-"),
+      );
+      submitData.append("isActive", String(formData.isActive));
+      submitData.append("thumbnail", formData.thumbnail);
+
       const res = await fetch(`/api/services`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          slug:
-            formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-"),
-          isActive: formData.isActive,
-        }),
+        body: submitData,
       });
       const result = await res.json();
       if (result.success) {
@@ -231,6 +246,21 @@ const ServicesPage = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="create-thumbnail" className="text-right text-sm">
+                Thumbnail
+              </Label>
+              <Input
+                id="create-thumbnail"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setFormData({ ...formData, thumbnail: file });
+                }}
                 className="col-span-3"
               />
             </div>

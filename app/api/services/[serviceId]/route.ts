@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyToken } from "@/lib/middleware/roleVerification";
 import { serviceValidation } from "@/lib/validation/service.validation";
+import UploadService from "@/lib/service/imagekit/upload";
 
 // UPDATE SERVICE
 export async function PUT(
@@ -17,8 +18,20 @@ export async function PUT(
     const { serviceId: serviceIdStr } = await params;
     const serviceId = parseInt(serviceIdStr);
 
-    const body = await req.json();
-    const parsedData = serviceValidation.safeParse(body);
+    const formData = await req.formData();
+    const file = formData.get("thumbnail") as File | null;
+
+    const parsedData = serviceValidation.safeParse({
+      name: formData.get("name"),
+      description: formData.get("description"),
+      isActive: formData.has("isActive")
+        ? formData.get("isActive") === "true"
+        : undefined,
+      slug: formData.get("slug") || undefined,
+      thumbnail: formData.has("thumbnail")
+        ? formData.get("thumbnail")
+        : undefined,
+    });
 
     if (!parsedData.success) {
       const flattenedErrors = parsedData.error.flatten();
@@ -35,6 +48,45 @@ export async function PUT(
 
     const { name, description, isActive, slug } = parsedData.data;
 
+    // existing service
+    const existingService = await prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+
+    if (!existingService) {
+      return NextResponse.json(
+        { success: false, message: "Service not found" },
+        { status: 404 },
+      );
+    }
+
+    let updatedThumbnailUrl = existingService.thumbnail;
+    let updatedThumbnailFieldId = existingService.thumbnailFieldId;
+
+    if (file) {
+      // delete old image
+      if (existingService.thumbnailFieldId) {
+        try {
+          await UploadService.deleteImage(existingService.thumbnailFieldId);
+        } catch (e) {
+          console.error("Failed to delete old image:", e);
+        }
+      }
+
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const fileExtension = file.name.split(".").pop() || "jpg";
+      const safeTitle = name.replace(/[^a-zA-Z0-9]/g, "-");
+      const fileName = `${existingService.id}-${safeTitle}.${fileExtension}`;
+
+      const uploadResult = await UploadService.uploadDocument(
+        buffer,
+        fileName,
+        "/APX/SERVICES",
+      );
+      updatedThumbnailUrl = uploadResult.url;
+      updatedThumbnailFieldId = uploadResult.fileId;
+    }
+
     const service = await prisma.service.update({
       where: {
         id: serviceId,
@@ -44,6 +96,8 @@ export async function PUT(
         description,
         isActive,
         slug: slug || name.toLowerCase().replace(/\s+/g, "-"),
+        thumbnail: updatedThumbnailUrl,
+        thumbnailFieldId: updatedThumbnailFieldId,
       },
     });
 
@@ -104,6 +158,25 @@ export async function DELETE(
 
     const resolvedParams = await params;
     const serviceId = parseInt(resolvedParams.serviceId, 10);
+
+    const existingService = await prisma.service.findUnique({
+      where: { id: serviceId },
+    });
+
+    if (!existingService) {
+      return NextResponse.json(
+        { success: false, message: "Service not found" },
+        { status: 404 },
+      );
+    }
+
+    if (existingService.thumbnailFieldId) {
+      try {
+        await UploadService.deleteImage(existingService.thumbnailFieldId);
+      } catch (e) {
+        console.error("Failed to delete image:", e);
+      }
+    }
 
     const service = await prisma.service.delete({
       where: {
