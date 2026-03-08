@@ -6,10 +6,10 @@ export async function POST(req: NextRequest) {
   try {
     const data = await req.json();
 
-    const { name, email, phone, message } = data;
+    const { name, email, phone, businessName, businessType, serviceId, message } = data;
 
     // ✅ Basic validation
-    if (!name || !email || !phone || !message) {
+    if (!name || !email || !phone || !message || !serviceId) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
         { status: 400 }
@@ -22,6 +22,9 @@ export async function POST(req: NextRequest) {
         name,
         email,
         phone,
+        businessName,
+        businessType,
+        serviceId: Number(serviceId),
         message,
       },
     });

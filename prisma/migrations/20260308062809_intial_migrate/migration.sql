@@ -23,7 +23,7 @@ CREATE TABLE "users" (
     "passwordHash" TEXT NOT NULL,
     "fullName" TEXT NOT NULL,
     "phone" TEXT,
-    "role" "UserRole" NOT NULL DEFAULT 'USER',
+    "role" "UserRole" NOT NULL DEFAULT 'CLIENT',
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -53,6 +53,8 @@ CREATE TABLE "services" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "thumbnail" TEXT,
+    "thumbnailFieldId" TEXT,
     "description" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -107,6 +109,7 @@ CREATE TABLE "FileUpload" (
     "requestId" INTEGER NOT NULL,
     "fileName" TEXT NOT NULL,
     "fileUrl" TEXT NOT NULL,
+    "docFileId" TEXT,
     "fileType" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
@@ -117,9 +120,10 @@ CREATE TABLE "FileUpload" (
 CREATE TABLE "BlogPost" (
     "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
-    "slug" TEXT NOT NULL,
+    "slug" TEXT,
     "content" TEXT NOT NULL,
     "thumbnail" TEXT,
+    "fieldId" TEXT,
     "status" "BlogStatus" NOT NULL DEFAULT 'DRAFT',
     "views" INTEGER NOT NULL DEFAULT 0,
     "authorId" INTEGER NOT NULL,
@@ -133,89 +137,92 @@ CREATE TABLE "BlogPost" (
 CREATE TABLE "BlogLike" (
     "id" SERIAL NOT NULL,
     "postId" INTEGER NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "BlogLike_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "blog_comments" (
+CREATE TABLE "BlogComment" (
     "id" SERIAL NOT NULL,
     "comment" TEXT NOT NULL,
-    "post_id" INTEGER NOT NULL,
-    "user_id" INTEGER NOT NULL,
-    "is_approved" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "postId" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "isApproved" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "blog_comments_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "BlogComment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "blog_shares" (
+CREATE TABLE "BlogShare" (
     "id" SERIAL NOT NULL,
-    "post_id" INTEGER NOT NULL,
-    "user_id" INTEGER,
+    "postId" INTEGER NOT NULL,
+    "userId" INTEGER,
     "platform" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "blog_shares_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "BlogShare_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ads" (
+CREATE TABLE "Ad" (
     "id" SERIAL NOT NULL,
     "placement" TEXT NOT NULL,
-    "ad_type" TEXT NOT NULL,
-    "ad_code" TEXT,
-    "image_url" TEXT,
-    "target_url" TEXT,
-    "client_name" TEXT,
-    "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "adType" TEXT NOT NULL,
+    "adCode" TEXT,
+    "imageUrl" TEXT,
+    "targetUrl" TEXT,
+    "clientName" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "ads_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Ad_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "enquiries" (
+CREATE TABLE "Enquiry" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "phone" TEXT,
+    "businessName" TEXT,
+    "businessType" TEXT,
+    "serviceId" INTEGER,
     "message" TEXT NOT NULL,
     "status" TEXT NOT NULL DEFAULT 'NEW',
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "enquiries_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Enquiry_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "notifications" (
+CREATE TABLE "Notification" (
     "id" SERIAL NOT NULL,
-    "user_id" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
     "message" TEXT NOT NULL,
-    "is_read" BOOLEAN NOT NULL DEFAULT false,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "isRead" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "notifications_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "payments" (
+CREATE TABLE "Payment" (
     "id" SERIAL NOT NULL,
-    "user_id" INTEGER NOT NULL,
-    "service_request_id" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "serviceRequestId" INTEGER NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
     "currency" TEXT NOT NULL DEFAULT 'USD',
     "status" "PaymentStatus" NOT NULL DEFAULT 'PENDING',
-    "transaction_id" TEXT,
-    "payment_method" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "transactionId" TEXT,
+    "paymentMethod" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -282,22 +289,25 @@ ALTER TABLE "BlogLike" ADD CONSTRAINT "BlogLike_postId_fkey" FOREIGN KEY ("postI
 ALTER TABLE "BlogLike" ADD CONSTRAINT "BlogLike_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "blog_comments" ADD CONSTRAINT "blog_comments_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "BlogPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BlogComment" ADD CONSTRAINT "BlogComment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "BlogPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "blog_comments" ADD CONSTRAINT "blog_comments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BlogComment" ADD CONSTRAINT "BlogComment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "blog_shares" ADD CONSTRAINT "blog_shares_post_id_fkey" FOREIGN KEY ("post_id") REFERENCES "BlogPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "BlogShare" ADD CONSTRAINT "BlogShare_postId_fkey" FOREIGN KEY ("postId") REFERENCES "BlogPost"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "blog_shares" ADD CONSTRAINT "blog_shares_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "BlogShare" ADD CONSTRAINT "BlogShare_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Enquiry" ADD CONSTRAINT "Enquiry_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "services"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "payments" ADD CONSTRAINT "payments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "payments" ADD CONSTRAINT "payments_service_request_id_fkey" FOREIGN KEY ("service_request_id") REFERENCES "ServiceRequest"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Payment" ADD CONSTRAINT "Payment_serviceRequestId_fkey" FOREIGN KEY ("serviceRequestId") REFERENCES "ServiceRequest"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

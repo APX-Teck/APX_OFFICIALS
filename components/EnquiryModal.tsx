@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { getallService } from "@/lib/apiServices/service";
 
 export default function EnquiryModal({
   open,
@@ -16,26 +17,26 @@ export default function EnquiryModal({
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
-    fullName: "",
+    name: "",
     email: "",
     phone: "",
     businessType: "",
     businessName: "",
-    serviceRequired: "",
+    serviceId: "",
     message: "",
   });
 
-  const services = useMemo(
-    () => [
-      "IT Services",
-      "Website Development",
-      "Mobile App Development",
-      "UI/UX Design",
-      "Digital Marketing",
-      "SEO & Branding",
-    ],
-    [],
-  );
+  const [services, setServices] = useState<{ id: number; name: string }[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      getallService().then((res) => {
+        if (res?.success && res.data) {
+          setServices(res.data);
+        }
+      });
+    }
+  }, [open]);
 
   // Close on ESC
   useEffect(() => {
@@ -68,12 +69,12 @@ export default function EnquiryModal({
 
   function resetForm() {
     setForm({
-      fullName: "",
+      name: "",
       email: "",
       phone: "",
       businessType: "",
       businessName: "",
-      serviceRequired: "",
+      serviceId: "",
       message: "",
     });
   }
@@ -99,6 +100,9 @@ export default function EnquiryModal({
         body: JSON.stringify({
           ...form,
           phone: onlyDigits,
+          serviceId: form.serviceId
+            ? parseInt(String(form.serviceId), 10)
+            : null,
         }),
       });
 
@@ -179,8 +183,8 @@ export default function EnquiryModal({
                 </label>
                 <input
                   required
-                  name="fullName"
-                  value={form.fullName}
+                  name="name"
+                  value={form.name}
                   onChange={updateField}
                   placeholder="Enter your full name"
                   className="input"
@@ -261,15 +265,15 @@ export default function EnquiryModal({
               </label>
               <select
                 required
-                name="serviceRequired"
-                value={form.serviceRequired}
+                name="serviceId"
+                value={form.serviceId || ""}
                 onChange={updateField}
                 className="input"
               >
                 <option value="">Select Service Required</option>
                 {services.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                  <option key={s.id} value={s.id}>
+                    {s.name}
                   </option>
                 ))}
               </select>
