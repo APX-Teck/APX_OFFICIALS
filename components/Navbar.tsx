@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import { jwtDecode } from "jwt-decode";
 import { cn } from "@/lib/cn";
 import { siteData } from "@/lib/siteData";
 import EnquiryModal from "@/components/EnquiryModal";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/ui/button";
 import { Menu, X, LogOut, LayoutDashboard, LogIn } from "lucide-react";
 
 export default function Navbar() {
@@ -42,6 +44,44 @@ export default function Navbar() {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
     router.push("/login");
+  };
+  const redirectToRoleDashboard = () => {
+    const token = localStorage.getItem("token") || Cookies.get("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      const decoded: any = jwtDecode(token);
+      const role = decoded?.role;
+
+      switch (role) {
+        case "SUPER_ADMIN":
+          router.push("/superadmin");
+          break;
+        case "ADMIN":
+          router.push("/admin");
+          break;
+        case "EDITOR":
+          router.push("/editor");
+          break;
+        case "ADS_MANAGER":
+          router.push("/adsmanager");
+          break;
+        case "SALES":
+          router.push("/sales");
+          break;
+        case "CLIENT":
+          router.push("/");
+          break;
+        default:
+          router.push("/dashboard");
+      }
+    } catch (error) {
+      console.error("Token decoding failed:", error);
+      router.push("/login");
+    }
   };
 
   return (
@@ -106,13 +146,13 @@ export default function Navbar() {
 
             {isLoggedIn ? (
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-black/10 dark:border-white/10">
-                <Link
-                  href="/dashboard"
-                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 rounded-xl transition-all"
+                <Button
+                  onClick={redirectToRoleDashboard}
+                  className="flex items-center gap-2 text-sm font-medium px-4 py-2 bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 text-black dark:text-white rounded-xl transition-all"
                 >
                   <LayoutDashboard className="w-4 h-4" />
                   Dashboard
-                </Link>
+                </Button>
                 <button
                   onClick={handleLogout}
                   className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
