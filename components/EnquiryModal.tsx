@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/cn";
-import { getallService } from "@/lib/apiServices/service";
+import { getServices } from "@/lib/apiServices/service";
 
 export default function EnquiryModal({
   open,
@@ -30,7 +30,7 @@ export default function EnquiryModal({
 
   useEffect(() => {
     if (open) {
-      getallService().then((res) => {
+      getServices().then((res) => {
         if (res?.success && res.data) {
           setServices(res.data);
         }

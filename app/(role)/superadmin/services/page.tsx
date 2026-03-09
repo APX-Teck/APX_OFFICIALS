@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/data-table";
 import { columns, Service } from "./columns"; // <-- Imported from relative path
+import { getServices, createService } from "@/lib/apiServices/service";
 import Cookies from "js-cookie";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -41,24 +42,17 @@ const ServicesPage = () => {
     description: "",
     slug: "",
     isActive: true,
+    thumbnail: null as File | null,
   });
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
-      const token = Cookies.get("token") || localStorage.getItem("token");
+      const params: Record<string, string> = {};
+      if (nameFilter.trim()) params.name = nameFilter.trim();
+      if (descFilter.trim()) params.description = descFilter.trim();
 
-      const searchParams = new URLSearchParams();
-      if (nameFilter.trim()) searchParams.set("name", nameFilter.trim());
-      if (descFilter.trim()) searchParams.set("description", descFilter.trim());
-
-      const queryStr = searchParams.toString();
-      const endpoint = queryStr ? `/api/services?${queryStr}` : `/api/services`;
-
-      const res = await fetch(endpoint, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const result = await res.json();
+      const result = await getServices(params);
       if (result.success) {
         setData(result.data);
       } else {
@@ -83,7 +77,13 @@ const ServicesPage = () => {
   }, [fetchServices]);
 
   const handleCreateOpen = () => {
-    setFormData({ name: "", description: "", slug: "", isActive: true });
+    setFormData({
+      name: "",
+      description: "",
+      slug: "",
+      isActive: true,
+      thumbnail: null,
+    });
     setIsCreateOpen(true);
   };
 
@@ -92,25 +92,24 @@ const ServicesPage = () => {
       toast.error("Name and description are required");
       return;
     }
+    if (!formData.thumbnail) {
+      toast.error("Thumbnail image is required");
+      return;
+    }
 
     setCreateLoading(true);
     try {
-      const token = Cookies.get("token") || localStorage.getItem("token");
-      const res = await fetch(`/api/services`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description,
-          slug:
-            formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-"),
-          isActive: formData.isActive,
-        }),
-      });
-      const result = await res.json();
+      const submitData = new FormData();
+      submitData.append("name", formData.name);
+      submitData.append("description", formData.description);
+      submitData.append(
+        "slug",
+        formData.slug || formData.name.toLowerCase().replace(/\s+/g, "-"),
+      );
+      submitData.append("isActive", String(formData.isActive));
+      submitData.append("thumbnail", formData.thumbnail);
+
+      const result = await createService(submitData);
       if (result.success) {
         toast.success("Service created successfully");
         setIsCreateOpen(false);
@@ -231,6 +230,21 @@ const ServicesPage = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
                 }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="create-thumbnail" className="text-right text-sm">
+                Thumbnail
+              </Label>
+              <Input
+                id="create-thumbnail"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setFormData({ ...formData, thumbnail: file });
+                }}
                 className="col-span-3"
               />
             </div>

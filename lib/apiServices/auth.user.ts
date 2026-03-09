@@ -1,32 +1,19 @@
 import axiosInstance from "../service/axios/axios";
 
-export const login = async (email: string, password: string) => {
+export const loginUser = async (data: any) => {
   try {
-    const response = await axiosInstance.post("/auth/login", {
-      email,
-      password,
-    });
+    const response = await axiosInstance.post("/auth/login", data);
     return response.data;
   } catch (error: any) {
-    return error.response.data;
+    return error.response?.data || { success: false, message: error.message };
   }
 };
 
-export const register = async (
-  name: string,
-  email: string,
-  phone: string,
-  password: string,
-) => {
+export const registerUser = async (data: any) => {
   try {
-    const response = await axiosInstance.post("/auth/signup", {
-      name,
-      email,
-      phone,
-      password,
-    });
+    const response = await axiosInstance.post("/auth/signup", data);
     return response.data;
   } catch (error: any) {
-    return error.response.data;
+    return error.response?.data || { success: false, message: error.message };
   }
 };

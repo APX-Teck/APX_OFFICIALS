@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Loader2 } from "lucide-react";
+import { registerUser } from "@/lib/apiServices/auth.user";
 
 // Zod Schema
 const signupSchema = z.object({
@@ -42,16 +43,14 @@ export default function Signup() {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, role: "CLIENT" }),
-      });
+      const result = await registerUser({ ...data, role: "CLIENT" });
 
-      const result = await res.json();
-
-      if (!res.ok || !result.success) {
-        throw new Error(result.message || "Something went wrong during signup");
+      if (!result.success) {
+        throw new Error(
+          result.message ||
+            result.error ||
+            "Something went wrong during signup",
+        );
       }
 
       // Automatically redirect to login page after successful signup

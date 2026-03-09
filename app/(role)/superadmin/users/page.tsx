@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { DataTable } from "@/components/data-table";
 import { columns, User } from "@/components/columns";
+import { getUsers } from "@/lib/apiServices/users";
 import Cookies from "js-cookie";
 import {
   Select,
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
-
 
 const UsersPage = () => {
   const [data, setData] = useState<User[]>([]);
@@ -26,25 +26,11 @@ const UsersPage = () => {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const token = Cookies.get("token") || localStorage.getItem("token");
+      const params: Record<string, string> = {};
+      if (roleFilter !== "all") params.role = roleFilter;
+      if (statusFilter !== "all") params.isActive = statusFilter;
 
-      const searchParams = new URLSearchParams();
-      if (roleFilter !== "all") {
-        searchParams.set("role", roleFilter);
-      }
-      if (statusFilter !== "all") {
-        searchParams.set("isActive", statusFilter);
-      }
-
-      const queryStr = searchParams.toString();
-      const endpoint = queryStr ? `/api/user?${queryStr}` : `/api/user`;
-
-      const res = await fetch(endpoint, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const result = await res.json();
+      const result = await getUsers(params);
       if (result.success) {
         setData(result.data);
       }

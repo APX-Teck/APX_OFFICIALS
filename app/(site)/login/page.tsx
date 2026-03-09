@@ -6,6 +6,7 @@ import Link from "next/link";
 import Cookies from "js-cookie";
 import { jwtDecode } from "jwt-decode";
 import { Loader2 } from "lucide-react";
+import { loginUser } from "@/lib/apiServices/auth.user";
 
 export default function Login() {
   const router = useRouter();
@@ -23,15 +24,9 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await loginUser({ email, password });
 
-      const data = await res.json();
-
-      if (!res.ok || !data.success) {
+      if (!data.success) {
         throw new Error(
           data.message || data.error || "Invalid email or password",
         );
@@ -74,7 +69,7 @@ export default function Login() {
         "CLIENT",
       ];
 
-      switch(role){
+      switch (role) {
         case "SUPER_ADMIN":
           router.push("/superadmin");
           break;
